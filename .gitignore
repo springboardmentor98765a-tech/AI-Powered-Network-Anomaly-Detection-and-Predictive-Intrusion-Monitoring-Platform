@@ -18,6 +18,13 @@ venv/
 node_modules/
 dist/
 
+# Machine Learning datasets and generated artifacts
+ml/data/raw/
+ml/data/processed/
+ml/artifacts/
+ml/models/*.joblib
+ml/models/*.pkl
+
 # OS files
 .DS_Store
 Thumbs.db
