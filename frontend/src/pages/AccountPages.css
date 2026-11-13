@@ -1,0 +1,479 @@
+
+.account-page {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-bottom: 32px;
+  color: #e8eef7;
+}
+
+.account-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 25px;
+}
+
+.account-eyebrow {
+  margin: 0 0 8px;
+  color: #38bdf8;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.7px;
+}
+
+.account-header h1 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 29px;
+  font-weight: 750;
+}
+
+.account-header p:last-child {
+  margin: 8px 0 0;
+  color: #93a4b8;
+  font-size: 14px;
+}
+
+.account-loading {
+  padding: 50px 20px;
+  color: #93a4b8;
+  text-align: center;
+  font-size: 13px;
+}
+
+.account-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 14px 16px;
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 9px;
+  font-size: 13px;
+}
+
+.account-error button {
+  padding: 8px 12px;
+  color: #fca5a5;
+  background: transparent;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+/* Profile */
+
+.account-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  color: #cbd5e1;
+  background: #1b293b;
+  border: 1px solid #34465d;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-refresh:hover {
+  color: #38bdf8;
+  border-color: #38bdf8;
+}
+
+.profile-card {
+  overflow: hidden;
+  background: #111c2c;
+  border: 1px solid #26364b;
+  border-radius: 14px;
+}
+
+.profile-banner {
+  height: 115px;
+  background: linear-gradient(110deg, #12304a, #12405a, #123044);
+  border-bottom: 1px solid #29435c;
+}
+
+.profile-main {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  padding: 0 25px;
+  margin-top: -35px;
+  position: relative;
+}
+
+.profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+  color: #06202a;
+  background: #38bdf8;
+  border: 5px solid #111c2c;
+  border-radius: 50%;
+  font-size: 27px;
+  font-weight: 800;
+}
+
+.profile-identity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding-top: 31px;
+}
+
+.profile-identity h2 {
+  width: 100%;
+  margin: 0;
+  color: #f8fafc;
+  font-size: 21px;
+}
+
+.profile-identity > span {
+  color: #8fa2b8;
+  font-size: 12px;
+}
+
+.profile-identity .profile-status {
+  padding: 5px 9px;
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.1);
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 750;
+  text-transform: capitalize;
+}
+
+.profile-identity .profile-status.inactive {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.profile-divider {
+  height: 1px;
+  margin: 24px 25px;
+  background: #26364b;
+}
+
+.profile-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  padding: 0 25px;
+}
+
+.profile-detail {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.profile-detail-icon {
+  display: grid;
+  place-items: center;
+  width: 39px;
+  height: 39px;
+  flex-shrink: 0;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  border-radius: 9px;
+}
+
+.profile-detail > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.profile-detail span {
+  color: #8295ab;
+  font-size: 11px;
+}
+
+.profile-detail strong {
+  color: #e2eaf4;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.profile-roles {
+  padding: 0 25px;
+}
+
+.profile-roles-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 14px;
+  color: #38bdf8;
+}
+
+.profile-roles-heading h3 {
+  margin: 0;
+  color: #e5edf7;
+  font-size: 14px;
+}
+
+.profile-role-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.profile-role-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  color: #a9dff3;
+  background: rgba(14, 165, 233, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 7px;
+  font-size: 11px;
+}
+
+.profile-no-roles {
+  color: #8295ab;
+  font-size: 12px;
+}
+
+.profile-note {
+  margin: 23px 25px 0;
+  padding: 13px 15px;
+  color: #8ba1b8;
+  background: #0c1726;
+  border: 1px solid #26364b;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.profile-card {
+  padding-bottom: 22px;
+}
+
+/* Change password */
+
+.password-card {
+  max-width: 650px;
+  padding: 25px;
+  background: #111c2c;
+  border: 1px solid #26364b;
+  border-radius: 13px;
+}
+
+.password-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 25px;
+}
+
+.password-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border-radius: 10px;
+}
+
+.password-card-heading h2 {
+  margin: 0;
+  color: #f1f5f9;
+  font-size: 17px;
+}
+
+.password-card-heading p {
+  margin: 6px 0 0;
+  color: #8497ad;
+  font-size: 12px;
+}
+
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+
+.password-form > label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #b8c6d7;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.password-form input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 43px;
+  padding: 0 12px;
+  color: #e2e8f0;
+  background: #0b1523;
+  border: 1px solid #34465d;
+  border-radius: 7px;
+  outline: none;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.password-form input:focus {
+  border-color: #38bdf8;
+}
+
+.password-form input::placeholder {
+  color: #64768d;
+}
+
+.password-input-wrap {
+  display: flex;
+  align-items: center;
+  background: #0b1523;
+  border: 1px solid #34465d;
+  border-radius: 7px;
+}
+
+.password-input-wrap:focus-within {
+  border-color: #38bdf8;
+}
+
+.password-input-wrap input {
+  border: none;
+  background: transparent;
+}
+
+.password-input-wrap button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  color: #8295ab;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.password-input-wrap button:hover {
+  color: #38bdf8;
+}
+
+.password-requirements {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 14px;
+  color: #38bdf8;
+  background: rgba(14, 165, 233, 0.07);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  border-radius: 8px;
+}
+
+.password-requirements > svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.password-requirements strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #b9e8fa;
+  font-size: 12px;
+}
+
+.password-requirements p {
+  margin: 4px 0 0;
+  color: #91a9bc;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.account-error-message {
+  padding: 11px 13px;
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+.password-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 43px;
+  padding: 10px 16px;
+  color: #06202a;
+  background: #38bdf8;
+  border: 1px solid #38bdf8;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.password-submit:hover:not(:disabled) {
+  background: #68cdfa;
+}
+
+.password-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.password-warning {
+  max-width: 650px;
+  margin: 15px 0 0;
+  color: #8295ab;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+@media (max-width: 650px) {
+  .account-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .profile-details-grid {
+    grid-template-columns: 1fr;
+    gap: 17px;
+    padding: 0 18px;
+  }
+
+  .profile-main,
+  .profile-roles {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .profile-divider {
+    margin-right: 18px;
+    margin-left: 18px;
+  }
+
+  .profile-note {
+    margin-right: 18px;
+    margin-left: 18px;
+  }
+
+  .password-card {
+    padding: 18px;
+  }
+}
