@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}User Management{% endblock %}
+{% block content %}
+<h1>User management</h1>
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+<section class="card">
+  <h2>Create user</h2>
+  <form class="form-row" method="post" action="/admin/users">
+    <label>Name <input name="name" required></label>
+    <label>Email <input name="email" type="email" required></label>
+    <label>Temporary password <input name="password" type="password" minlength="8" required></label>
+    <label>Role <select name="role_id" required>{% for role in roles %}<option value="{{ role.id }}">{{ role.role_name }}</option>{% endfor %}</select></label>
+    <button class="btn primary" type="submit">Create user</button>
+  </form>
+</section>
+<section class="card">
+  <h2>Accounts</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Name / email</th><th>Roles</th><th>Status</th><th>Update profile</th><th>Account state</th></tr></thead>
+    <tbody>{% for member in users %}
+      <tr>
+        <td><strong>{{ member.name }}</strong><br><span class="muted">{{ member.email }}</span></td>
+        <td>{{ member.roles | map(attribute='role_name') | join(', ') or 'No role' }}</td>
+        <td><span class="pill {{ 'ok' if member.status == 'active' else 'bad' }}">{{ member.status }}</span></td>
+        <td><form class="inline-form" method="post" action="/admin/users/{{ member.id }}/update">
+          <input name="name" value="{{ member.name }}" aria-label="Name" required>
+          <input name="email" type="email" value="{{ member.email }}" aria-label="Email" required>
+          <button class="btn" type="submit">Save</button>
+        </form></td>
+        <td><form method="post" action="/admin/users/{{ member.id }}/status">
+          <input type="hidden" name="status" value="{{ 'inactive' if member.status == 'active' else 'active' }}">
+          <button class="btn" type="submit" {% if member.id == user.id and member.status == 'active' %}disabled title="You cannot deactivate your own account"{% endif %}>{{ 'Deactivate' if member.status == 'active' else 'Activate' }}</button>
+        </form></td>
+      </tr>
+    {% else %}<tr><td colspan="5" class="muted">No users found.</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endblock %}

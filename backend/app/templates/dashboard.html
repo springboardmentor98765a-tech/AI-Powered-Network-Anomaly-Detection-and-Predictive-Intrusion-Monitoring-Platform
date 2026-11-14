@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Welcome back, {{ user.name.split(' ')[0] }}</h1>
+
+{% if stats %}
+<section class="stats">
+  <div class="stat"><b>{{ stats.total_users }}</b><span>Total users</span></div>
+  <div class="stat"><b>{{ stats.active_users }}</b><span>Active users</span></div>
+  <div class="stat"><b>{{ stats.teams }}</b><span>Teams</span></div>
+  <div class="stat {{ 'warn' if stats.failed_logins_24h else '' }}"><b>{{ stats.failed_logins_24h }}</b><span>Failed logins (24h)</span></div>
+</section>
+{% endif %}
+
+<div class="grid">
+  <section class="card">
+    <h2>Profile</h2>
+    <dl>
+      <dt>Name</dt><dd>{{ user.name }}</dd>
+      <dt>Email</dt><dd>{{ user.email }}</dd>
+      <dt>Role</dt><dd>{{ roles | join(', ') }}</dd>
+      <dt>Status</dt><dd><span class="pill ok">{{ user.status }}</span></dd>
+      <dt>Member since</dt><dd>{{ user.member_since }}</dd>
+      <dt>Last sign-in</dt><dd>{{ user.last_login }}</dd>
+    </dl>
+  </section>
+
+  <section class="card">
+    <h2>What you can do</h2>
+    <ul class="actions">
+      {% for a in actions %}<li>{{ a }}</li>{% endfor %}
+    </ul>
+  </section>
+</div>
+
+<section class="card">
+  <h2>{{ 'All teams' if stats else 'Your teams' }}</h2>
+  {% if teams %}
+  <table>
+    <thead><tr><th>Team</th><th>Description</th><th>Members</th>{% if can_see_members %}<th>Roster</th>{% endif %}</tr></thead>
+    <tbody>
+    {% for t in teams %}
+      <tr>
+        <td>{{ t.name }}</td>
+        <td>{{ t.description }}</td>
+        <td>{{ t.member_count }}</td>
+        {% if can_see_members %}
+        <td>{% for m in t.members %}<span class="chip {{ 'off' if m.status != 'active' else '' }}">{{ m.name }}</span>{% endfor %}</td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">You haven't been assigned to a team yet.</p>
+  {% endif %}
+</section>
+
+{% if events is not none %}
+<section class="card">
+  <h2>Recent activity</h2>
+  <table>
+    <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Result</th></tr></thead>
+    <tbody>
+    {% for e in events %}
+      <tr><td>{{ e.time }}</td><td>{{ e.actor }}</td><td>{{ e.action }}</td>
+          <td><span class="pill {{ 'ok' if e.status == 'success' else 'bad' }}">{{ e.status }}</span></td></tr>
+    {% else %}
+      <tr><td colspan="4" class="muted">No activity recorded yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}

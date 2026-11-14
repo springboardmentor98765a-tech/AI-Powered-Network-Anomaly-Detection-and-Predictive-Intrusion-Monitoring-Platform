@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Roles & Permissions{% endblock %}
+{% block content %}
+<h1>Roles &amp; permissions</h1>
+<section class="card">
+  <h2>Available roles and permitted actions</h2>
+  <div class="grid role-grid">{% for role in roles %}
+    <article class="card role-card">
+      <h2>{{ role.role_name.replace('_', ' ') | title }}</h2>
+      <p class="muted">{{ role.description or 'No description provided.' }}</p>
+      <p><strong>Permitted actions</strong></p>
+      <ul class="actions">
+        {% for action in role_actions.get(role.role_name, []) %}<li>{{ action }}</li>{% endfor %}
+      </ul>
+    </article>
+  {% endfor %}</div>
+</section>
+<section class="card">
+  <h2>Assign or remove a role</h2>
+  <form class="form-row" method="post" action="/admin/roles/assign">
+    <label>User <select name="user_id" required>{% for member in users %}<option value="{{ member.id }}">{{ member.name }} ({{ member.email }})</option>{% endfor %}</select></label>
+    <label>Role <select name="role_id" required>{% for role in roles %}<option value="{{ role.id }}">{{ role.role_name }}</option>{% endfor %}</select></label>
+    <label>Operation <select name="operation"><option value="assign">Assign</option><option value="remove">Remove</option></select></label>
+    <button class="btn primary" type="submit">Apply</button>
+  </form>
+</section>
+<section class="card">
+  <h2>Current assignments</h2>
+  <div class="table-wrap"><table><thead><tr><th>User</th><th>Roles</th></tr></thead><tbody>
+    {% for member in users %}<tr><td>{{ member.name }} <span class="muted">({{ member.email }})</span></td><td>{{ member.roles | map(attribute='role_name') | join(', ') or 'No role assigned' }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

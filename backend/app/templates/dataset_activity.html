@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<h1>{{ page_title }}</h1>
+<section class="card dataset-note">
+  <strong>Read-only CIC-IDS 2018 demonstration</strong>
+  <p>This page reads the first {{ "{:,}".format(scanned) }} CSV rows from <code>cic.csv</code> as a bounded sample. Counts and records below describe this sample only; this project does not train a model or claim live network detection.</p>
+</section>
+<section class="stats">
+  <div class="stat"><b>{{ "{:,}".format(scanned) }}</b><span>Rows sampled</span></div>
+  <div class="stat"><b>{{ labels.get('Benign', 0) }}</b><span>Benign sample records</span></div>
+  <div class="stat"><b>{{ total_labels - labels.get('Benign', 0) }}</b><span>Non-benign sample records</span></div>
+  <div class="stat"><b>{{ labels | length }}</b><span>Distinct labels in sample</span></div>
+</section>
+<section class="card">
+  <h2>Label distribution in sample</h2>
+  <div class="label-list">{% for label_name, count in labels.items() | sort(attribute=0) %}
+    <span class="label-chip">{{ label_name }} <strong>{{ count }}</strong></span>
+  {% endfor %}</div>
+</section>
+<section class="card">
+  <h2>{{ 'Non-benign labeled records' if alerts_only else 'Flow records' }}</h2>
+  <form class="form-row" method="get" action="{{ '/monitoring/alerts' if alerts_only else '/monitoring/activity' }}">
+    <label>Label <select name="label"><option value="">All labels</option>{% for label_name in labels.keys() | sort %}<option value="{{ label_name }}" {% if selected_label == label_name %}selected{% endif %}>{{ label_name }}</option>{% endfor %}</select></label>
+    <label>Search displayed fields <input name="q" value="{{ search }}" placeholder="port, protocol, timestamp..."></label>
+    <button class="btn primary" type="submit">Filter</button>
+  </form>
+  <p class="muted">Showing up to 200 matches within the sampled rows.</p>
+  <div class="table-wrap"><table><thead><tr>{% for field in ['Dst Port','Protocol','Timestamp','Flow Duration','Tot Fwd Pkts','Tot Bwd Pkts','Flow Byts/s','Flow Pkts/s','Label'] %}<th>{{ field }}</th>{% endfor %}</tr></thead>
+    <tbody>{% for row in rows %}<tr>
+      <td>{{ row['Dst Port'] }}</td><td>{{ row['Protocol'] }}</td><td>{{ row['Timestamp'] }}</td>
+      <td>{{ row['Flow Duration'] }}</td><td>{{ row['Tot Fwd Pkts'] }}</td><td>{{ row['Tot Bwd Pkts'] }}</td>
+      <td>{{ row['Flow Byts/s'] }}</td><td>{{ row['Flow Pkts/s'] }}</td>
+      <td><span class="pill {{ 'ok' if row['Label'].casefold() == 'benign' else 'bad' }}">{{ row['Label'] }}</span></td>
+    </tr>{% else %}<tr><td colspan="9" class="muted">No matching records in the sampled rows.</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endblock %}

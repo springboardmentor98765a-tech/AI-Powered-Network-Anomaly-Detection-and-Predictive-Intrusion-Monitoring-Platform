@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Audit Logs{% endblock %}
+{% block content %}
+<h1>Audit logs</h1>
+<section class="card">
+  <form class="form-row" method="get" action="/admin/audit-logs">
+    <label>Action <select name="action"><option value="">All actions</option>{% for item in actions %}<option value="{{ item }}" {% if item == selected_action %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></label>
+    <label>Result <select name="status"><option value="">All results</option><option value="success" {% if selected_status == 'success' %}selected{% endif %}>Success</option><option value="failure" {% if selected_status == 'failure' %}selected{% endif %}>Failure</option></select></label>
+    <button class="btn primary" type="submit">Filter</button>
+  </form>
+</section>
+<section class="card">
+  <p class="muted">Showing up to 200 newest recorded activities.</p>
+  <div class="table-wrap"><table><thead><tr><th>Time (UTC)</th><th>Actor</th><th>Action</th><th>Target</th><th>Result</th><th>Details</th></tr></thead>
+    <tbody>{% for event in events %}<tr>
+      <td>{{ event.time }}</td><td>{{ event.actor }}</td><td>{{ event.action }}</td><td>{{ event.target }}</td>
+      <td><span class="pill {{ 'ok' if event.status == 'success' else 'bad' }}">{{ event.status }}</span></td><td>{{ event.details }}</td>
+    </tr>{% else %}<tr><td colspan="6" class="muted">No matching activity.</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endblock %}
