@@ -1,0 +1,171 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   NetShield AI — Glass Recipes
+   Every recipe has a -webkit-backdrop-filter twin.
+   Never stack more than 2 blurred layers (performance).
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ── Level 1 — subtle surfaces (sidebar fields, idle cards) ── */
+.glass-1 {
+  background: var(--glass-1);
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+}
+
+/* ── Level 2 — content cards (login, dashboard widgets) ────── */
+.glass-2 {
+  background: var(--glass-2);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow), var(--glass-highlight);
+}
+
+/* ── Level 3 — modals, drawers, menus, toasts (more opaque) ── */
+.glass-3 {
+  background: var(--glass-3);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid var(--glass-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 60px rgba(0,0,0,.55), var(--glass-highlight);
+}
+
+/* ── Fallback when backdrop-filter is unavailable ──────────── */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-1, .glass-2, .glass-3 { background: rgba(16,20,24,.92); }
+}
+/* Users who prefer no transparency (accessibility) */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-1, .glass-2, .glass-3 {
+    background: rgba(16,20,24,.92);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* ── Hoverable cards ───────────────────────────────────────── */
+/* lift + stronger border + soft accent glow, 200ms */
+.glass-hoverable {
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+  cursor: pointer;
+}
+.glass-hoverable:hover {
+  transform: translateY(-2px);
+  border-color: var(--glass-border-strong);
+  box-shadow: var(--shadow), 0 0 24px var(--accent-glow), var(--glass-highlight);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BUTTONS
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Primary — solid lime */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  font-size: 14px;
+  font-family: inherit;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: box-shadow 150ms ease, transform 150ms ease, opacity 150ms ease;
+  white-space: nowrap;
+}
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 0 20px var(--accent-glow);
+  transform: translateY(-1px);
+}
+.btn-primary.btn-sm { padding: 6px 14px; font-size: 13px; }
+
+/* Glass — translucent */
+.btn-glass {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: var(--glass-1);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+  white-space: nowrap;
+}
+.btn-glass:hover:not(:disabled) {
+  border-color: var(--glass-border-strong);
+  background: var(--glass-2);
+}
+.btn-glass.btn-sm { padding: 6px 14px; font-size: 13px; }
+
+/* Danger — red-tinted glass */
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: rgba(248,113,113,.12);
+  color: var(--danger);
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid rgba(248,113,113,.28);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 150ms ease, box-shadow 150ms ease;
+  white-space: nowrap;
+}
+.btn-danger:hover:not(:disabled) {
+  background: rgba(248,113,113,.22);
+  box-shadow: 0 0 14px rgba(248,113,113,.22);
+}
+.btn-danger.btn-sm { padding: 6px 14px; font-size: 13px; }
+
+/* Shared disabled state */
+button:disabled,
+.btn-primary:disabled,
+.btn-glass:disabled,
+.btn-danger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   INPUTS
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.input-glass {
+  width: 100%;
+  background: var(--glass-1);
+  color: var(--text);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.input-glass::placeholder { color: var(--text-muted); }
+.input-glass:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(149,255,80,.15);
+}
+.input-glass.has-error { border-color: var(--danger); }
+.input-glass.has-error:focus { box-shadow: 0 0 0 3px rgba(248,113,113,.15); }
+

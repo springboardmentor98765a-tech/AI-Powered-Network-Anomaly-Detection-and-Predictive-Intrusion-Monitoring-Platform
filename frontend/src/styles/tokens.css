@@ -1,0 +1,44 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   NetShield AI — Design Tokens
+   Change the accent in ONE place here, everything follows.
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+:root {
+  /* ── Accent (lime) ─────────────────────────────── */
+  --accent:       #95ff50;
+  --accent-ink:   #0b1205;          /* text ON the lime button */
+  --accent-glow:  rgba(149,255,80,.35);
+
+  /* ── Backgrounds ───────────────────────────────── */
+  --bg-0: #07090b;
+
+  /* ── Text ──────────────────────────────────────── */
+  --text:       rgba(255,255,255,.92);
+  --text-muted: rgba(255,255,255,.62);
+
+  /* ── Glass layers (light → opaque) ─────────────── */
+  --glass-1:              rgba(255,255,255,.04);   /* subtle panels  */
+  --glass-2:              rgba(255,255,255,.07);   /* content cards  */
+  --glass-3:              rgba(18,22,26,.72);      /* modals/drawers */
+  --glass-border:         rgba(255,255,255,.12);
+  --glass-border-strong:  rgba(255,255,255,.22);
+  --glass-highlight:      inset 0 1px 0 rgba(255,255,255,.10);
+  --shadow:               0 8px 32px rgba(0,0,0,.35);
+
+  /* ── Radii ─────────────────────────────────────── */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  /* ── Semantic status ───────────────────────────── */
+  --success: #34d399;
+  --danger:  #f87171;
+  --warning: #fbbf24;
+  --info:    #38bdf8;
+
+  /* ── Severity (reserved for Module 5 alerts) ───── */
+  --sev-critical: #ef4444;
+  --sev-high:     #f97316;
+  --sev-medium:   #fbbf24;
+  --sev-low:      #38bdf8;
+}
+

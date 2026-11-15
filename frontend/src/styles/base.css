@@ -1,0 +1,113 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   NetShield AI — Base / Reset / Typography
+   Inter Variable is registered via JS import in main.jsx.
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ── Reset ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Root ──────────────────────────────────────────── */
+html { font-size: 16px; }
+
+body {
+  font-family: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  background: var(--bg-0);
+  color: var(--text);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root { min-height: 100vh; }
+
+/* ── Typography scale: 12 / 14 / 16 / 20 / 28 / 36 ── */
+h1 { font-size: 36px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); }
+h2 { font-size: 28px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); }
+h3 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); }
+h4 { font-size: 16px; font-weight: 600; color: var(--text); }
+p  { font-size: 14px; color: var(--text-muted); }
+
+/* Monospace stack — ids, timestamps, audit details */
+.mono {
+  font-family: ui-monospace, 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  font-size: 12px;
+}
+
+/* ── Focus ring (every interactive element) ────────── */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Scrollbar ─────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--glass-border-strong); }
+
+/* ── Links ─────────────────────────────────────────── */
+a { color: var(--accent); text-decoration: none; }
+
+/* ── Button base ───────────────────────────────────── */
+button { cursor: pointer; border: none; background: none; font-family: inherit; color: inherit; }
+
+/* ── Skeleton shimmer ──────────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--glass-1) 25%,
+    var(--glass-2) 50%,
+    var(--glass-1) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Keyframes ─────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Reduced motion — disable every animation ──────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
