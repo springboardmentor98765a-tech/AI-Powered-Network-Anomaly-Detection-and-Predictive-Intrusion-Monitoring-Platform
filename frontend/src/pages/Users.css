@@ -1,0 +1,113 @@
+
+.user-table-container {
+    background: #151f32;
+    border: 1px solid #263750;
+    border-radius: 10px;
+    padding: 20px;
+    overflow-x: auto;
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.user-table th {
+    color: #94a3b8;
+    font-size: 13px;
+    padding: 15px;
+    border-bottom: 1px solid #354660;
+}
+
+.user-table td {
+    padding: 16px 15px;
+    font-size: 14px;
+    border-bottom: 1px solid #263750;
+    color: #d5deed;
+}
+
+.user-table tr:last-child td {
+    border-bottom: none;
+}
+
+.active-status {
+    color: #22c55e;
+    background: #123c30;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+}
+
+.inactive-status {
+    color: #f87171;
+    background: #451d29;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+}
+
+.error-message {
+    color: #ff7777;
+}
+
+
+.create-user-container {
+    background: #151f32;
+    border: 1px solid #263750;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 30px;
+    max-width: 650px;
+}
+
+.create-user-container h2,
+.user-table-container h2 {
+    font-size: 19px;
+    margin: 0 0 20px;
+}
+
+.create-user-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.create-user-container label {
+    color: #cbd5e1;
+    font-size: 14px;
+}
+
+.create-user-container input,
+.create-user-container select {
+    padding: 11px;
+    border: 1px solid #354660;
+    border-radius: 6px;
+    background: #0d1728;
+    color: white;
+    font-size: 14px;
+}
+
+.create-user-container button {
+    margin-top: 12px;
+    padding: 12px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.create-user-container button:hover {
+    background: #1d4ed8;
+}
+
+.success-message {
+    color: #22c55e;
+    margin-top: 15px;
+}
+
+.error-message {
+    color: #f87171;
+    margin-top: 15px;
+}

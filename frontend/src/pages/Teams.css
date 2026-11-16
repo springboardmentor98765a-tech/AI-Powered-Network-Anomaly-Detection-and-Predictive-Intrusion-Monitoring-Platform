@@ -1,0 +1,141 @@
+
+.team-form-container,
+.team-list-container {
+    background: #151f32;
+    border: 1px solid #263750;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
+.team-form-container {
+    max-width: 650px;
+}
+
+.team-form-container h2,
+.team-list-container h2 {
+    font-size: 19px;
+    margin: 0 0 20px;
+}
+
+.team-form-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.team-form-container label {
+    color: #cbd5e1;
+    font-size: 14px;
+}
+
+.team-form-container input,
+.team-form-container textarea {
+    padding: 11px;
+    border: 1px solid #354660;
+    border-radius: 6px;
+    background: #0d1728;
+    color: white;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+}
+
+.team-form-container button {
+    margin-top: 12px;
+    padding: 12px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.team-form-container button:hover {
+    background: #1d4ed8;
+}
+
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 18px;
+}
+
+.team-card {
+    background: #0d1728;
+    border: 1px solid #354660;
+    border-radius: 9px;
+    padding: 20px;
+}
+
+.team-card h3 {
+    margin-top: 0;
+    color: #60a5fa;
+}
+
+.team-card p {
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.team-card span {
+    color: #71839e;
+    font-size: 12px;
+}
+
+.success-message {
+    color: #22c55e;
+}
+
+.error-message {
+    color: #f87171;
+}
+
+.team-members {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+}
+
+.team-members h4 {
+    margin-bottom: 10px;
+}
+
+.team-members ul {
+    list-style: none;
+    padding: 0;
+}
+
+.team-members li {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.team-members p {
+    color: #777;
+    font-size: 14px;
+}
+
+.member-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.remove-member-btn {
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.remove-member-btn:hover {
+    background-color: #b91c1c;
+}
