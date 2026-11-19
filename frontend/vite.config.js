@@ -12,7 +12,6 @@ export default defineConfig({
       "/teams": backend,
       "/monitoring": backend,
       "/static": backend,
-      "/dashboard": backend,
       "/logout": backend,
       "/docs": backend,
       "/openapi.json": backend,

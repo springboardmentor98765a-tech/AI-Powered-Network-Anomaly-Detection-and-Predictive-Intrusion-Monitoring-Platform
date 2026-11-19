@@ -72,11 +72,15 @@ npm install
 npm run dev
 ```
 
-Open the Vite URL shown in the terminal (normally `http://localhost:5173`). Its development proxy forwards API calls and existing management/monitoring pages to FastAPI. You can also use those server-rendered pages directly at the backend URL.
+Open the Vite URL shown in the terminal (normally `http://localhost:5173`). The React dashboard is available at both `/` and `/dashboard`; the development proxy forwards API calls and management/monitoring pages to FastAPI. You can also use the server-rendered pages directly at the backend URL, including its `/dashboard`.
+
+## Sign up
+
+Use **Sign up** on the frontend login page to create an account. A normalized email address can only be registered once, and passwords are stored as hashes. Sign-up requires a matching password confirmation and allows one selection: Security Analyst or Team Lead / Supervisor. Administrator access can only be assigned by an administrator.
 
 ## CIC-IDS dataset
 
-The project reads `cic.csv` from the project root (the file is excluded from Git because it is large). If it is stored elsewhere, set `CIC_DATASET_PATH` in `backend\.env`. Dataset pages read at most 50,000 rows and display at most 200 matching records. This is a read-only dataset demonstration; no model is trained and it is not live traffic monitoring.
+The project reads `cic.csv` from the project root (the file is excluded from Git because it is large). If it is stored elsewhere, set `CIC_DATASET_PATH` in `backend\.env`. The dark React dashboard keeps the existing account counts and aggregates charts over the entire CSV. The server-rendered activity and alert pages still inspect the first 50,000 rows and display up to 200 matching records. CIC-IDS 2018 is historical offline traffic data; this project does not train a model or monitor live traffic.
 
 ## Tests
 

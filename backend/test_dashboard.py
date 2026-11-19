@@ -71,6 +71,77 @@ def test_react_auth_api_sets_and_clears_session_cookie():
         assert c.get("/api/dashboard").status_code == 401
 
 
+def test_public_registration_persists_analyst_and_rejects_duplicate_or_role_input():
+    with TestClient(app) as c:
+        response = c.post("/api/auth/register", json={
+            "name": "New Member",
+            "email": " New.Member@demo.local ",
+            "password": "NewMember@123",
+            "confirm_password": "NewMember@123",
+            "role": "security_analyst",
+        })
+        assert response.status_code == 201
+        assert response.json()["user"]["email"] == "new.member@demo.local"
+        assert response.json()["user"]["roles"] == ["security_analyst"]
+        assert "httponly" in response.headers["set-cookie"].lower()
+        assert c.get("/api/auth/me").json()["user"]["name"] == "New Member"
+
+        with SessionLocal() as db:
+            from app.models import AuditLog, User
+            member = db.scalar(select(User).where(User.email == "new.member@demo.local"))
+            assert member is not None
+            assert member.password_hash != "NewMember@123"
+            assert [role.role_name for role in member.roles] == ["security_analyst"]
+            actions = db.scalars(
+                select(AuditLog.action)
+                .where(AuditLog.actor_user_id == member.id)
+                .order_by(AuditLog.id)
+            ).all()
+            assert actions[-2:] == ["user.create", "login"]
+
+        duplicate = c.post("/api/auth/register", json={
+            "name": "Duplicate Member",
+            "email": "NEW.MEMBER@DEMO.LOCAL",
+            "password": "NewMember@456",
+            "confirm_password": "NewMember@456",
+            "role": "security_analyst",
+        })
+        assert duplicate.status_code == 409
+        mismatch = c.post("/api/auth/register", json={
+            "name": "Mismatch Member",
+            "email": "mismatch@demo.local",
+            "password": "Mismatch@123",
+            "confirm_password": "Mismatch@456",
+            "role": "security_analyst",
+        })
+        assert mismatch.status_code == 400
+        lead = c.post("/api/auth/register", json={
+            "name": "Team Lead Member",
+            "email": "public.lead@demo.local",
+            "password": "PublicLead@123",
+            "confirm_password": "PublicLead@123",
+            "role": "team_lead",
+        })
+        assert lead.status_code == 201
+        assert lead.json()["user"]["roles"] == ["team_lead"]
+        role_attempt = c.post("/api/auth/register", json={
+            "name": "Role Attempt",
+            "email": "role.attempt@demo.local",
+            "password": "RoleAttempt@123",
+            "confirm_password": "RoleAttempt@123",
+            "role": "administrator",
+        })
+        assert role_attempt.status_code == 400
+        multiple_roles = c.post("/api/auth/register", json={
+            "name": "Multiple Roles",
+            "email": "multiple.roles@demo.local",
+            "password": "MultipleRoles@123",
+            "confirm_password": "MultipleRoles@123",
+            "role": ["security_analyst", "team_lead"],
+        })
+        assert multiple_roles.status_code == 422
+
+
 def test_login_accepts_username():
     with TestClient(app) as c:
         response = c.post("/login", data={"username": "Asha Admin", "password": "Admin@123"},
@@ -101,6 +172,24 @@ def test_team_lead_can_manage_team_page_only():
 def test_dataset_pages_show_bounded_csv_data():
     with TestClient(app) as c:
         login(c, "analyst@demo.local", "Analyst@123")
+        summary = c.get("/api/monitoring/summary")
+        assert summary.status_code == 200
+        overview = summary.json()
+        assert overview["source"] == "CIC-IDS 2018 full CSV"
+        assert overview["scanned"] > 50000
+        assert overview["total_flows"] == overview["scanned"]
+        assert overview["available_labels"]
+        assert overview["records"]
+        selected_label = overview["available_labels"][0]
+        filtered = c.get(
+            "/api/monitoring/summary",
+            params={"label": selected_label},
+        ).json()
+        assert all(record["label"] == selected_label for record in filtered["records"])
+        assert filtered["total_flows"] <= overview["total_flows"]
+        threats = c.get("/api/monitoring/summary?threats_only=true").json()
+        assert threats["benign_flows"] == 0
+        assert threats["total_flows"] < overview["total_flows"]
         activity = c.get("/monitoring/activity")
         alerts = c.get("/monitoring/alerts")
         assert activity.status_code == alerts.status_code == 200
