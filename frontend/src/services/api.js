@@ -18,8 +18,9 @@ export function removeToken() {
 
 async function request(endpoint, options = {}) {
   const token = getToken();
+  const isFormData = options.body instanceof FormData;
   const headers = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   };
@@ -54,6 +55,12 @@ export const api = {
     request('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ username_or_email, password }),
+    }),
+
+  register: (userData) =>
+    request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
     }),
 
   logout: () =>
@@ -145,4 +152,57 @@ export const api = {
   },
 
   getAuditStats: () => request('/audit/stats'),
+
+  // Network Monitoring (Module 2)
+  getTrafficOverview: (params = {}) => {
+    const query = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    ).toString();
+    return request(`/traffic/overview${query ? `?${query}` : ''}`);
+  },
+
+  getTrafficPackets: (params = {}) => {
+    const query = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    ).toString();
+    return request(`/traffic/packets${query ? `?${query}` : ''}`);
+  },
+
+  getProtocolAnalysis: () => request('/traffic/protocols'),
+
+  uploadPcap: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request('/traffic/upload-pcap', {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
+  generateSampleTraffic: (count = 350) =>
+    request(`/traffic/generate-sample?count=${count}`, {
+      method: 'POST',
+    }),
+
+  clearTraffic: () =>
+    request('/traffic/clear', {
+      method: 'DELETE',
+    }),
+
+  getNidsDashboard: (params = '7d') => {
+    if (typeof params === 'string') {
+      return request(`/traffic/nids-dashboard?timeframe=${params}`);
+    }
+    const query = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    ).toString();
+    return request(`/traffic/nids-dashboard${query ? `?${query}` : ''}`);
+  },
+
+  getAlerts: (params = {}) => {
+    const query = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    ).toString();
+    return request(`/traffic/alerts${query ? `?${query}` : ''}`);
+  },
 };

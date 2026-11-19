@@ -52,6 +52,19 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const register = async (userData) => {
+    setError(null);
+    try {
+      const response = await api.register(userData);
+      setToken(response.access_token);
+      setUser(response.user);
+      return response.user;
+    } catch (err) {
+      setError(err.message || 'Registration failed');
+      throw err;
+    }
+  };
+
   const logout = async () => {
     try {
       await api.logout();
@@ -92,6 +105,7 @@ export function AuthProvider({ children }) {
         error,
         setError,
         login,
+        register,
         logout,
         refreshUser,
         isAdmin,

@@ -2,9 +2,15 @@ import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import {
   LayoutDashboard,
+  Activity,
+  ShieldAlert,
+  BarChart3,
+  FileText,
+  Sliders,
+  Server,
+  Settings,
   Users,
   ShieldCheck,
-  FileText,
   UserCircle,
 } from 'lucide-react';
 
@@ -14,8 +20,20 @@ export default function Sidebar({ currentPage, onNavigate }) {
   const navItems = [
     {
       id: 'dashboard',
-      label: 'Overview',
+      label: 'Dashboard',
       icon: LayoutDashboard,
+      roles: ['Administrator', 'Team Lead / Supervisor', 'Security Analyst'],
+    },
+    {
+      id: 'alerts',
+      label: 'Alerts',
+      icon: ShieldAlert,
+      roles: ['Administrator', 'Team Lead / Supervisor', 'Security Analyst'],
+    },
+    {
+      id: 'traffic',
+      label: 'Traffic Monitor',
+      icon: Activity,
       roles: ['Administrator', 'Team Lead / Supervisor', 'Security Analyst'],
     },
     {
@@ -39,14 +57,14 @@ export default function Sidebar({ currentPage, onNavigate }) {
     {
       id: 'profile',
       label: 'Account',
-      icon: UserCircle,
+      icon: Settings,
       roles: ['Administrator', 'Team Lead / Supervisor', 'Security Analyst'],
     },
   ];
 
   return (
-    <aside className="w-56 bg-white border-r border-slate-200 p-3 min-h-[calc(100vh-57px)] shrink-0">
-      <nav className="space-y-0.5">
+    <aside className="w-56 p-3 bg-white border-r border-slate-200 flex flex-col shrink-0 min-h-[calc(100vh-57px)]">
+      <nav className="space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isAllowed = item.roles.includes(user?.role);
@@ -59,13 +77,13 @@ export default function Sidebar({ currentPage, onNavigate }) {
               key={item.id}
               type="button"
               onClick={() => onNavigate(item.id)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-xs transition cursor-pointer ${
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition cursor-pointer ${
                 isActive
                   ? 'bg-slate-100 text-slate-900 font-semibold'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
               }`}
             >
-              <Icon className="w-4 h-4 text-slate-500" />
+              <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-slate-500'}`} />
               <span>{item.label}</span>
             </button>
           );

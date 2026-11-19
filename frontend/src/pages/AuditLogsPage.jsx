@@ -6,6 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Table,
   TableHeader,
   TableBody,
@@ -76,13 +83,15 @@ export default function AuditLogsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+    <div className="space-y-5">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
-          <h1 className="text-base font-semibold text-slate-900">Audit Logs</h1>
+          <h1 className="text-lg font-semibold tracking-tight text-slate-900">
+            Audit Logs
+          </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Chronological record of authentication attempts, account updates, and team changes.
+            Chronological record of authentication events, user updates, and security logs
           </p>
         </div>
 
@@ -92,9 +101,9 @@ export default function AuditLogsPage() {
           size="sm"
           onClick={fetchLogs}
           disabled={loading}
-          className="self-start sm:self-auto"
+          className="h-8 text-xs bg-white border-slate-200 shadow-2xs self-start sm:self-auto"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
           <span>Refresh</span>
         </Button>
       </div>
@@ -148,48 +157,66 @@ export default function AuditLogsPage() {
         </form>
 
         <div className="flex flex-wrap items-center gap-2">
-          <select
-            value={actionFilter}
-            onChange={(e) => setActionFilter(e.target.value)}
-            className="bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs text-slate-700 focus:outline-none focus:border-slate-900 h-8"
-          >
-            <option value="">All Actions</option>
-            <option value="LOGIN_SUCCESS">LOGIN_SUCCESS</option>
-            <option value="LOGIN_FAILED">LOGIN_FAILED</option>
-            <option value="LOGOUT">LOGOUT</option>
-            <option value="USER_CREATE">USER_CREATE</option>
-            <option value="USER_UPDATE">USER_UPDATE</option>
-            <option value="USER_STATUS_CHANGE">USER_STATUS_CHANGE</option>
-            <option value="USER_ROLE_CHANGE">USER_ROLE_CHANGE</option>
-            <option value="TEAM_CREATE">TEAM_CREATE</option>
-            <option value="TEAM_UPDATE">TEAM_UPDATE</option>
-            <option value="TEAM_MEMBER_ADD">TEAM_MEMBER_ADD</option>
-            <option value="TEAM_MEMBER_REMOVE">TEAM_MEMBER_REMOVE</option>
-            <option value="PASSWORD_CHANGE">PASSWORD_CHANGE</option>
-            <option value="PASSWORD_RESET">PASSWORD_RESET</option>
-          </select>
+          <div className="w-48">
+            <Select
+              value={actionFilter || 'ALL'}
+              onValueChange={(val) => setActionFilter(val === 'ALL' ? '' : val)}
+            >
+              <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+                <SelectValue placeholder="All Actions" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Actions</SelectItem>
+                <SelectItem value="LOGIN_SUCCESS">LOGIN_SUCCESS</SelectItem>
+                <SelectItem value="LOGIN_FAILED">LOGIN_FAILED</SelectItem>
+                <SelectItem value="LOGOUT">LOGOUT</SelectItem>
+                <SelectItem value="USER_CREATE">USER_CREATE</SelectItem>
+                <SelectItem value="USER_UPDATE">USER_UPDATE</SelectItem>
+                <SelectItem value="USER_STATUS_CHANGE">USER_STATUS_CHANGE</SelectItem>
+                <SelectItem value="USER_ROLE_CHANGE">USER_ROLE_CHANGE</SelectItem>
+                <SelectItem value="TEAM_CREATE">TEAM_CREATE</SelectItem>
+                <SelectItem value="TEAM_UPDATE">TEAM_UPDATE</SelectItem>
+                <SelectItem value="TEAM_MEMBER_ADD">TEAM_MEMBER_ADD</SelectItem>
+                <SelectItem value="TEAM_MEMBER_REMOVE">TEAM_MEMBER_REMOVE</SelectItem>
+                <SelectItem value="PASSWORD_CHANGE">PASSWORD_CHANGE</SelectItem>
+                <SelectItem value="PASSWORD_RESET">PASSWORD_RESET</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs text-slate-700 focus:outline-none focus:border-slate-900 h-8"
-          >
-            <option value="">All Statuses</option>
-            <option value="SUCCESS">SUCCESS</option>
-            <option value="FAILED">FAILED</option>
-          </select>
+          <div className="w-36">
+            <Select
+              value={statusFilter || 'ALL'}
+              onValueChange={(val) => setStatusFilter(val === 'ALL' ? '' : val)}
+            >
+              <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Statuses</SelectItem>
+                <SelectItem value="SUCCESS">SUCCESS</SelectItem>
+                <SelectItem value="FAILED">FAILED</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <select
-            value={targetTypeFilter}
-            onChange={(e) => setTargetTypeFilter(e.target.value)}
-            className="bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs text-slate-700 focus:outline-none focus:border-slate-900 h-8"
-          >
-            <option value="">All Targets</option>
-            <option value="AUTH">AUTH</option>
-            <option value="USER">USER</option>
-            <option value="TEAM">TEAM</option>
-            <option value="SYSTEM">SYSTEM</option>
-          </select>
+          <div className="w-36">
+            <Select
+              value={targetTypeFilter || 'ALL'}
+              onValueChange={(val) => setTargetTypeFilter(val === 'ALL' ? '' : val)}
+            >
+              <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+                <SelectValue placeholder="All Targets" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Targets</SelectItem>
+                <SelectItem value="AUTH">AUTH</SelectItem>
+                <SelectItem value="USER">USER</SelectItem>
+                <SelectItem value="TEAM">TEAM</SelectItem>
+                <SelectItem value="SYSTEM">SYSTEM</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 

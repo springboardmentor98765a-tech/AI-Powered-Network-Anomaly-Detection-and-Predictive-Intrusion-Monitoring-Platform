@@ -5,6 +5,7 @@ from app.models.user import User, UserRole
 from app.models.team import Team
 from app.models.token_blocklist import TokenBlocklist
 from app.models.audit import AuditLog, AuditAction, AuditStatus
+from app.models.traffic import CaptureSession, PacketRecord
 
 def init_db():
     # Create all database tables

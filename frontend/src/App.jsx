@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
 import DashboardPage from '@/pages/DashboardPage';
+import AlertsPage from '@/pages/AlertsPage';
+import TrafficMonitorPage from '@/pages/TrafficMonitorPage';
 import UsersPage from '@/pages/UsersPage';
 import TeamsPage from '@/pages/TeamsPage';
 import AuditLogsPage from '@/pages/AuditLogsPage';
@@ -15,6 +18,15 @@ import { Shield, ShieldAlert } from 'lucide-react';
 function AppContent() {
   const { user, loading, isAdmin, isTeamLead } = useAuth();
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const [authView, setAuthView] = useState('login');
+  const [trafficFilter, setTrafficFilter] = useState({});
+
+  const handleNavigate = (page, filter = null) => {
+    setCurrentPage(page);
+    if (filter !== null && filter !== undefined) {
+      setTrafficFilter(filter);
+    }
+  };
 
   if (loading) {
     return (
@@ -22,19 +34,37 @@ function AppContent() {
         <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center shadow-xs animate-pulse">
           <Shield className="w-4 h-4" />
         </div>
-        <p className="text-xs font-medium text-slate-500">Loading...</p>
+        <p className="text-xs font-medium text-slate-500">Loading NetShield AI...</p>
       </div>
     );
   }
 
   if (!user) {
-    return <LoginPage />;
+    return authView === 'login' ? (
+      <LoginPage onSwitchToRegister={() => setAuthView('register')} />
+    ) : (
+      <RegisterPage onSwitchToLogin={() => setAuthView('login')} />
+    );
   }
 
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <DashboardPage onNavigate={setCurrentPage} />;
+        return <DashboardPage onNavigate={handleNavigate} />;
+      case 'alerts':
+        return (
+          <AlertsPage
+            initialFilter={trafficFilter}
+            onNavigate={handleNavigate}
+          />
+        );
+      case 'traffic':
+        return (
+          <TrafficMonitorPage
+            initialFilter={trafficFilter}
+            onClearFilter={() => setTrafficFilter({})}
+          />
+        );
       case 'users':
         return <UsersPage />;
       case 'teams':
@@ -42,7 +72,7 @@ function AppContent() {
       case 'audit':
         if (!isAdmin && !isTeamLead) {
           return (
-            <Card className="max-w-md mx-auto mt-12 text-center p-6">
+            <Card className="max-w-md mx-auto mt-12 text-center p-6 bg-white border border-slate-200">
               <CardContent className="space-y-3 pt-2">
                 <div className="inline-flex p-2.5 bg-rose-50 border border-rose-200 rounded-lg text-rose-600">
                   <ShieldAlert className="w-6 h-6" />
@@ -67,16 +97,19 @@ function AppContent() {
       case 'profile':
         return <ProfilePage />;
       default:
-        return <DashboardPage onNavigate={setCurrentPage} />;
+        return <DashboardPage onNavigate={handleNavigate} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
-      <Navbar onNavigate={setCurrentPage} currentPage={currentPage} />
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+      <Navbar onNavigate={handleNavigate} currentPage={currentPage} />
       <div className="flex flex-1">
-        <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
-        <main className="flex-1 p-6 overflow-y-auto max-w-6xl">
+        <Sidebar
+          currentPage={currentPage}
+          onNavigate={handleNavigate}
+        />
+        <main className="flex-1 p-5 overflow-y-auto w-full max-w-[1550px] mx-auto">
           {renderPage()}
         </main>
       </div>

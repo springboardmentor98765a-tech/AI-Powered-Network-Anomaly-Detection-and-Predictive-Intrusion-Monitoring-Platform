@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Shield, AlertCircle, KeyRound, User } from 'lucide-react';
 
-export default function LoginPage() {
+export default function LoginPage({ onSwitchToRegister }) {
   const { login, error: contextError } = useAuth();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -114,6 +114,17 @@ export default function LoginPage() {
                 {loading ? 'Authenticating...' : 'Continue'}
               </Button>
             </form>
+
+            <div className="mt-4 pt-3 border-t border-slate-100 text-center text-xs text-slate-500">
+              Don't have an account?{' '}
+              <button
+                type="button"
+                onClick={onSwitchToRegister}
+                className="font-medium text-slate-900 hover:underline cursor-pointer"
+              >
+                Register
+              </button>
+            </div>
           </CardContent>
         </Card>
       </div>

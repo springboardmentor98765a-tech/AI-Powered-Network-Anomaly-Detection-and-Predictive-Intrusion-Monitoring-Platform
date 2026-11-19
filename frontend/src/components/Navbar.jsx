@@ -30,7 +30,7 @@ export default function Navbar({ onNavigate, currentPage }) {
           <Shield className="w-4 h-4" />
         </div>
         <span className="font-semibold text-sm tracking-tight text-slate-900">
-          NetShield AI
+          NetShield
         </span>
       </div>
 
@@ -44,7 +44,7 @@ export default function Navbar({ onNavigate, currentPage }) {
                   {user.role}
                 </Badge>
                 {user.team_name && (
-                  <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                  <span className="text-[11px] flex items-center gap-1 text-slate-500">
                     <Users className="w-3 h-3 text-slate-400" />
                     {user.team_name}
                   </span>
@@ -52,7 +52,7 @@ export default function Navbar({ onNavigate, currentPage }) {
               </div>
             </div>
 
-            <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+            <div className="h-6 w-px mx-1 hidden sm:block bg-slate-200"></div>
 
             <Button
               type="button"
@@ -60,6 +60,7 @@ export default function Navbar({ onNavigate, currentPage }) {
               size="icon"
               onClick={() => onNavigate('profile')}
               title="Account & Security"
+              className="text-slate-700"
             >
               <UserIcon className="w-3.5 h-3.5" />
             </Button>

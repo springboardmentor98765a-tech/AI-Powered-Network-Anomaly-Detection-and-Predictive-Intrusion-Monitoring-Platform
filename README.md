@@ -6,8 +6,14 @@ Network Anomaly Detection & Predictive Intrusion Monitoring Platform.
 
 ## Work Progress Log
 
+### 2026-11-18 — Module 2: Network Monitoring & Protocol Analysis
+- **Packet Collection**: Ingests Wireshark `.pcap`/`.pcapng` packet captures with Scapy, plus on-demand high-fidelity synthetic packet generation.
+- **Traffic Monitoring**: Calculates total packets collected, total traffic volume (bytes/KB/MB/GB), active IP connections, and traffic direction (Inbound, Outbound, Internal).
+- **Protocol Analysis**: Classifies and visualizes TCP, UDP, HTTP, HTTPS, DNS, ICMP, ARP, and unclassified protocols with packet share, byte volume, and TCP:UDP ratio.
+- **Top Talkers & Traffic Visualization**: Interactive time-series traffic charts, protocol distribution donut chart, top source/destination talkers, and searchable packet inspection table (filter by IP, protocol, port, and direction).
+
 ### 2026-11-13 — Module 1: Core Platform & Access Control
-- **Security Analyst Authentication**: Login via email/username, bcrypt password hashing, signed JWT with blocklist revocation on logout, and non-revealing 401 error messages.
+- **User Authentication & Self-Registration**: Self-service user registration with selectable platform roles, login via email/username, bcrypt password hashing, signed JWT with blocklist revocation on logout, and non-revealing 401 error messages.
 - **Role-Based Access Control (RBAC)**: Strict permission enforcement on backend and frontend across 3 roles: Administrator, Team Lead / Supervisor, and Security Analyst.
 - **Team Management**: Team creation, member assignment/removal, duplicate checks, and role-scoped team views.
 - **Audit Logging**: Immutable security logs for logins, logouts, account updates, and team changes with search and filtering.
@@ -47,7 +53,8 @@ npm run dev
 ### 3. Run Automated Tests
 ```bash
 cd backend
-python test_module1.py
+python test_module1.py    # Module 1 (19 tests)
+python test_module2.py    # Module 2 (10 tests)
 ```
 
 ---

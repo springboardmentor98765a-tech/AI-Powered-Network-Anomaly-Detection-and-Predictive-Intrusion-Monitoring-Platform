@@ -3,10 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.core.security import verify_password, hash_password, create_access_token, decode_access_token
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.token_blocklist import TokenBlocklist
 from app.models.audit import AuditAction, AuditStatus
-from app.schemas.auth import LoginRequest, TokenResponse, LogoutResponse
+from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, LogoutResponse
 from app.schemas.user import UserResponse, PasswordChange
 from app.api.deps import (
     get_db,
@@ -17,6 +17,85 @@ from app.api.deps import (
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+def register(
+    register_data: RegisterRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Self-service registration endpoint.
+    - Validates uniqueness of username and email.
+    - Allows user to choose role from allowed platform roles.
+    - Hashes password using bcrypt.
+    - Records user creation in audit log.
+    - Automatically signs user in by issuing a signed JWT token.
+    """
+    ip = get_client_ip(request)
+    username = register_data.username.strip()
+    email = register_data.email.strip().lower()
+
+    # Check username uniqueness
+    if db.query(User).filter(User.username == username).first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A user with this username already exists.",
+        )
+
+    # Check email uniqueness
+    if db.query(User).filter(User.email == email).first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A user with this email already exists.",
+        )
+
+    # Validate role
+    role = register_data.role if register_data.role in UserRole.ALL else UserRole.ANALYST
+
+    # Create new user
+    user = User(
+        username=username,
+        email=email,
+        full_name=register_data.full_name.strip(),
+        hashed_password=hash_password(register_data.password),
+        role=role,
+        is_active=True,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    # Record audit log
+    log_audit(
+        db=db,
+        action=AuditAction.USER_CREATE,
+        target_type="USER",
+        status=AuditStatus.SUCCESS,
+        actor_id=user.id,
+        actor_username=user.username,
+        target_id=str(user.id),
+        details={"event": "Self-service registration", "role": user.role},
+        ip_address=ip,
+    )
+
+    # Issue signed JWT token
+    token, _ = create_access_token(subject=user.id, role=user.role)
+
+    user_resp = UserResponse(
+        id=user.id,
+        username=user.username,
+        email=user.email,
+        full_name=user.full_name,
+        role=user.role,
+        is_active=user.is_active,
+        team_id=user.team_id,
+        team_name=None,
+        created_at=user.created_at,
+        updated_at=user.updated_at,
+    )
+
+    return TokenResponse(access_token=token, token_type="bearer", user=user_resp)
 
 @router.post("/login", response_model=TokenResponse)
 def login(login_data: LoginRequest, request: Request, db: Session = Depends(get_db)):

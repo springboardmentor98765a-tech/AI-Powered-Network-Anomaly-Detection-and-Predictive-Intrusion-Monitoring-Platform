@@ -64,14 +64,14 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      {/* Header */}
-      <div className="pb-4 border-b border-slate-200">
-        <h1 className="text-base font-semibold text-slate-900">
+    <div className="space-y-5 max-w-4xl">
+      {/* Top Header */}
+      <div className="pb-3 border-b border-slate-200">
+        <h1 className="text-lg font-semibold tracking-tight text-slate-900">
           Account
         </h1>
         <p className="text-xs text-slate-500 mt-0.5">
-          Account settings and password management.
+          Profile settings, authentication credentials, and security controls
         </p>
       </div>
 

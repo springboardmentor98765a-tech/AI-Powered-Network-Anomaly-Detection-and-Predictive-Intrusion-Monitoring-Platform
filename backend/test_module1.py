@@ -164,8 +164,35 @@ def run_tests():
     assert "revoked" in res.json()["detail"].lower()
     print("[PASS] 17. Security: Revoked token rejected on subsequent API requests")
 
+    # 10. Self-Service Registration with Role Selection
+    reg_suffix = str(uuid.uuid4())[:6]
+    res = client.post("/api/v1/auth/register", json={
+        "username": f"self_reg_{reg_suffix}",
+        "email": f"self_{reg_suffix}@netshield.ai",
+        "full_name": "Registered User",
+        "password": "Password123!",
+        "role": UserRole.TEAM_LEAD
+    })
+    assert res.status_code == 201, f"Registration failed: {res.text}"
+    reg_data = res.json()
+    assert reg_data["user"]["role"] == UserRole.TEAM_LEAD
+    assert "access_token" in reg_data
+    print(f"[PASS] 18. Self-service registration successful with custom role '{UserRole.TEAM_LEAD}'")
+
+    # Verify duplicate username rejection
+    res_dup = client.post("/api/v1/auth/register", json={
+        "username": f"self_reg_{reg_suffix}",
+        "email": f"different_{reg_suffix}@netshield.ai",
+        "full_name": "Another User",
+        "password": "Password123!",
+        "role": UserRole.ANALYST
+    })
+    assert res_dup.status_code == 400
+    assert "already exists" in res_dup.json()["detail"]
+    print("[PASS] 19. Registration correctly rejects duplicate username with 400")
+
     print("=" * 60)
-    print("ALL 17 MODULE 1 BACKEND VERIFICATION CHECKS PASSED!")
+    print("ALL 19 MODULE 1 BACKEND VERIFICATION CHECKS PASSED!")
     print("=" * 60)
 
 if __name__ == "__main__":

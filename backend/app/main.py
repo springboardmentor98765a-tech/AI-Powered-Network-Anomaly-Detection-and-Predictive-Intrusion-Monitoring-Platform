@@ -7,6 +7,7 @@ from app.api.auth import router as auth_router
 from app.api.users import router as users_router
 from app.api.teams import router as teams_router
 from app.api.audit import router as audit_router
+from app.api.traffic import router as traffic_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,6 +37,7 @@ app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(users_router, prefix=settings.API_V1_STR)
 app.include_router(teams_router, prefix=settings.API_V1_STR)
 app.include_router(audit_router, prefix=settings.API_V1_STR)
+app.include_router(traffic_router, prefix=settings.API_V1_STR)
 
 @app.get("/api/health")
 def health_check():

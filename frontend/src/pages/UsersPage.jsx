@@ -7,6 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Table,
   TableHeader,
   TableBody,
@@ -185,15 +192,15 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+    <div className="space-y-5">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
-          <h1 className="text-base font-semibold text-slate-900">
+          <h1 className="text-lg font-semibold tracking-tight text-slate-900">
             Users
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Manage platform accounts, role permissions, and team assignments.
+            Platform user accounts, role permissions, and team assignments
           </p>
         </div>
 
@@ -202,7 +209,7 @@ export default function UsersPage() {
             type="button"
             size="sm"
             onClick={() => setShowCreateModal(true)}
-            className="self-start sm:self-auto"
+            className="h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5 font-medium shadow-xs self-start sm:self-auto"
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span>Add User</span>
@@ -239,16 +246,22 @@ export default function UsersPage() {
 
         <div className="flex items-center gap-2">
           <Filter className="w-3.5 h-3.5 text-slate-400" />
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs text-slate-700 focus:outline-none focus:border-slate-900 h-8"
-          >
-            <option value="">All Roles</option>
-            <option value="Administrator">Administrator</option>
-            <option value="Team Lead / Supervisor">Team Lead / Supervisor</option>
-            <option value="Security Analyst">Security Analyst</option>
-          </select>
+          <div className="w-44">
+            <Select
+              value={roleFilter || 'ALL'}
+              onValueChange={(val) => setRoleFilter(val === 'ALL' ? '' : val)}
+            >
+              <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+                <SelectValue placeholder="All Roles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Roles</SelectItem>
+                <SelectItem value="Administrator">Administrator</SelectItem>
+                <SelectItem value="Team Lead / Supervisor">Team Lead / Supervisor</SelectItem>
+                <SelectItem value="Security Analyst">Security Analyst</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -416,31 +429,39 @@ export default function UsersPage() {
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label>RBAC Role *</Label>
-                <select
+                <Select
                   value={newUser.role}
-                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                  className="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-900 w-full h-8"
+                  onValueChange={(val) => setNewUser({ ...newUser, role: val })}
                 >
-                  <option value="Security Analyst">Security Analyst</option>
-                  <option value="Team Lead / Supervisor">Team Lead / Supervisor</option>
-                  <option value="Administrator">Administrator</option>
-                </select>
+                  <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Security Analyst">Security Analyst</SelectItem>
+                    <SelectItem value="Team Lead / Supervisor">Team Lead / Supervisor</SelectItem>
+                    <SelectItem value="Administrator">Administrator</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1">
                 <Label>Team</Label>
-                <select
-                  value={newUser.team_id}
-                  onChange={(e) => setNewUser({ ...newUser, team_id: e.target.value })}
-                  className="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-900 w-full h-8"
+                <Select
+                  value={newUser.team_id ? String(newUser.team_id) : 'NONE'}
+                  onValueChange={(val) => setNewUser({ ...newUser, team_id: val === 'NONE' ? '' : val })}
                 >
-                  <option value="">No Team</option>
-                  {teams.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+                    <SelectValue placeholder="No Team" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NONE">No Team</SelectItem>
+                    {teams.map((t) => (
+                      <SelectItem key={t.id} value={String(t.id)}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -495,31 +516,39 @@ export default function UsersPage() {
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label>Role</Label>
-                <select
+                <Select
                   value={editFormData.role}
-                  onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
-                  className="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-900 w-full h-8"
+                  onValueChange={(val) => setEditFormData({ ...editFormData, role: val })}
                 >
-                  <option value="Security Analyst">Security Analyst</option>
-                  <option value="Team Lead / Supervisor">Team Lead / Supervisor</option>
-                  <option value="Administrator">Administrator</option>
-                </select>
+                  <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Security Analyst">Security Analyst</SelectItem>
+                    <SelectItem value="Team Lead / Supervisor">Team Lead / Supervisor</SelectItem>
+                    <SelectItem value="Administrator">Administrator</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1">
                 <Label>Team</Label>
-                <select
-                  value={editFormData.team_id}
-                  onChange={(e) => setEditFormData({ ...editFormData, team_id: e.target.value })}
-                  className="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-900 w-full h-8"
+                <Select
+                  value={editFormData.team_id ? String(editFormData.team_id) : 'NONE'}
+                  onValueChange={(val) => setEditFormData({ ...editFormData, team_id: val === 'NONE' ? '' : val })}
                 >
-                  <option value="">No Team</option>
-                  {teams.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+                    <SelectValue placeholder="No Team" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NONE">No Team</SelectItem>
+                    {teams.map((t) => (
+                      <SelectItem key={t.id} value={String(t.id)}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
