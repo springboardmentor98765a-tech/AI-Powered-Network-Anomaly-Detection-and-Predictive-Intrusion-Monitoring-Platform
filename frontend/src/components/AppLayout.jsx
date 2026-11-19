@@ -18,9 +18,19 @@ import { useAuth } from "../context/AuthContext";
 
 const navigation = [
   {
-    label: "Overview",
+    label: " Security Overview",
     path: "/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    label: "Network Monitoring",
+    path: "/network-monitoring",
+    icon: Network,
+    roles: [
+      "Administrator",
+      "Security Analyst",
+      "Team Lead / Supervisor",
+    ],
   },
   {
     label: "User Management",
@@ -165,7 +175,9 @@ export default function AppLayout() {
       <main className="main-area">
         <header className="topbar">
           <div>
-            <div className="topbar-label">NETSHIELD AI / SECURITY CENTER</div>
+            <div className="topbar-label">
+              NETSHIELD AI / SECURITY CENTER
+            </div>
             <div className="topbar-status">
               <span className="status-dot" />
               Secure workspace

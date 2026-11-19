@@ -16,6 +16,7 @@ import AppLayout from "./components/AppLayout";
 
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
+import NetworkMonitoringPage from "./pages/NetworkMonitoringPage";
 import TeamsPage from "./pages/TeamsPage";
 import UsersPage from "./pages/UsersPage";
 import RolesPage from "./pages/RolesPage";
@@ -33,6 +34,21 @@ function AppRoutes() {
           <Route
             path="/dashboard"
             element={<DashboardPage />}
+          />
+
+          <Route
+            path="/network-monitoring"
+            element={
+              <RoleGuard
+                allowedRoles={[
+                  "Administrator",
+                  "Security Analyst",
+                  "Team Lead / Supervisor",
+                ]}
+              >
+                <NetworkMonitoringPage />
+              </RoleGuard>
+            }
           />
 
           <Route

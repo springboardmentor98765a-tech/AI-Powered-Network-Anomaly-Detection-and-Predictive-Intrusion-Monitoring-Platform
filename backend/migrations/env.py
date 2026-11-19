@@ -5,8 +5,9 @@ from alembic import context
 from app.db.base import Base
 from app.db.session import engine
 
-# Import models so Alembic can detect all database tables.
+# Import all models so Alembic can discover their tables.
 import app.models
+import app.network_models
 
 
 config = context.config
