@@ -1,0 +1,31 @@
+# Python environments
+.venv/
+venv/
+backend/.venv/
+backend/.venv311/
+
+# Python cache
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Frontend dependencies and builds
+frontend/node_modules/
+frontend/dist/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment secrets
+.env
+**/.env
+!.env.example
+
+# IDE and OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+*.tsbuildinfo
