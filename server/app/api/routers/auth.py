@@ -60,12 +60,12 @@ def change_password(body: ChangePasswordRequest, current_user: User = Depends(ge
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
 def register(request: Request, body: RegisterRequest, db: Session = Depends(get_db)):
-    # 1. Restrict self-registration to Analyst and Team Lead only
-    allowed_roles = ["Analyst", "Team Lead"]
+    # 1. Restrict self-registration to Security Analyst and Team Lead only
+    allowed_roles = ["Security Analyst", "Team Lead"]
     if body.role_name not in allowed_roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Self-registration is only permitted for Analyst or Team Lead roles"
+            detail="Self-registration is only permitted for Security Analyst or Team Lead roles"
         )
 
     # 2. Check for duplicate email

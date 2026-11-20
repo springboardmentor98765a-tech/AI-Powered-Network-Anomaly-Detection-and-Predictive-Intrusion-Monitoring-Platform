@@ -10,7 +10,7 @@ export default function RegisterPage() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [roleName, setRoleName] = useState<"Analyst" | "Team Lead">("Analyst");
+  const [roleName, setRoleName] = useState<"Security Analyst" | "Team Lead">("Security Analyst");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
@@ -103,7 +103,7 @@ export default function RegisterPage() {
             </label>
             <select
               value={roleName}
-              onChange={(e) => setRoleName(e.target.value as "Analyst" | "Team Lead")}
+              onChange={(e) => setRoleName(e.target.value as "Security Analyst" | "Team Lead")}
               className="w-full px-4 py-3 rounded-lg outline-none text-sm transition-all duration-200 bg-background text-text-h border border-border focus:border-primary focus:ring-2 focus:ring-primary/30 cursor-pointer"
             >
               <option value="Analyst">SOC Analyst</option>

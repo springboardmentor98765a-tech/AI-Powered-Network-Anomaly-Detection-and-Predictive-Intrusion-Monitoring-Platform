@@ -1,6 +1,6 @@
 # NetShield AI — AI-Powered Network Anomaly Detection & Predictive Intrusion Monitoring Platform
 
-[![Project Status: Active Development](https://img.shields.io/badge/Status-Module%201%20Completed-success.svg)]()
+[![Project Status: Active Development](https://img.shields.io/badge/Status-Module%202%20Completed-success.svg)]()
 [![Backend: FastAPI](https://img.shields.io/badge/Backend-FastAPI-005571?logo=fastapi)]()
 [![Frontend: React & Vite](https://img.shields.io/badge/Frontend-React%20%2F%20Vite%20%2F%20TS-61DAFB?logo=react&logoColor=black)]()
 [![Database: PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?logo=postgresql&logoColor=white)]()
@@ -10,7 +10,7 @@
 ## Current Project Status
 
 ```text
-Module 1 implementation completed; code pushed to GitHub on 15/11/2026.
+Module 2 implementation completed; code pushed to GitHub on 20/11/2026.
 ```
 
 ---
@@ -29,7 +29,8 @@ Module 1 implementation completed; code pushed to GitHub on 15/11/2026.
 | Module / Milestone | Core Scope                 |    Status     | Completion Date |
 | :----------------- | :------------------------- | :-----------: | :-------------: |
 | **Module 1**       | **User Management & RBAC** | **Completed** | **15 Nov 2026** |
-| **Module 2**       | -                          |   **Next**    |        -        |
+| **Module 2**       | **Network Monitoring**     | **Completed** | **20 NOv 2026** |
+| **Module 3**       | **-**                      |   **Next**    |      **-**      |
 
 ---
 
@@ -132,12 +133,16 @@ npm run dev
 
 - **SOC Web Portal:** Open the local Vite URL provided in your terminal (typically `http://localhost:5173`).
 
-## 📸 UI & API Previews (Module 1)
+## 📸 UI & API Previews (Module 1 & 2)
 
 |                                                       Authentication (Login & Registration)                                                       |                             User Management & RBAC                             |
 | :-----------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------: |
-| <img src="docs/screenshots/login.png" alt="Login Page" width="190" /> <img src="docs/screenshots/register.png" alt="Register Page" width="190" /> | <img src="docs/screenshots/dashboard.png" alt="User Management" width="420" /> |
+| <img src="docs/screenshots/login.png" alt="Login Page" width="200" /> <img src="docs/screenshots/register.png" alt="Register Page" width="200" /> | <img src="docs/screenshots/dashboard.png" alt="User Management" width="420" /> |
 
-|                              Team Operations                               |                                 Audit Logs                                 |
-| :------------------------------------------------------------------------: | :------------------------------------------------------------------------: |
-| <img src="docs/screenshots/team.jpeg" alt="Team Operations" width="420" /> | <img src="docs/screenshots/auditlogs.jpeg" alt="Audit Logs" width="420" /> |
+|                              Team Operations                               |                                Audit Logs                                 |
+| :------------------------------------------------------------------------: | :-----------------------------------------------------------------------: |
+| <img src="docs/screenshots/teams.png" alt="Team Operations" width="420" /> | <img src="docs/screenshots/auditlogs.png" alt="Audit Logs" width="420" /> |
+
+|                               Network Monitoring                                |                               Threat Analytics                               |
+| :-----------------------------------------------------------------------------: | :--------------------------------------------------------------------------: |
+| <img src="docs/screenshots/network.png" alt="Network Monitoring" width="420" /> | <img src="docs/screenshots/threat.png" alt="Threat Analytics" width="420" /> |

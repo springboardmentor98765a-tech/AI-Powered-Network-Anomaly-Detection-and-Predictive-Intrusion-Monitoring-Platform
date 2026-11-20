@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, Table
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, Table,  Float, Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -61,3 +61,23 @@ class AuditLog(Base):
     status = Column(String(20), nullable=False)  # 'SUCCESS' or 'FAILURE'
     timestamp = Column(DateTime(timezone=True), default=datetime.utcnow, index=True)
     details = Column(Text)  # JSON-encoded string or JSONB
+
+class NetworkFlow(Base):
+    __tablename__ = "network_flows"
+
+    id = Column(Integer, primary_key=True, index=True)
+    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    source_ip = Column(String(45), index=True)
+    destination_ip = Column(String(45), index=True)
+    source_port = Column(Integer, default=0)
+    destination_port = Column(Integer, default=0)
+    protocol = Column(String(16), index=True)
+    packet_length = Column(Integer, default=0)
+    flow_duration = Column(Float, default=0.0)
+    flag = Column(String(24), nullable=True)
+    status = Column(String(20), default="NORMAL")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        Index("idx_flow_ip_proto", "source_ip", "destination_ip", "protocol"),
+    )

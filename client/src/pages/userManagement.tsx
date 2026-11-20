@@ -10,7 +10,7 @@ export default function UserManagement() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [roleName, setRoleName] = useState("Analyst");
+  const [roleName, setRoleName] = useState("Security Analyst");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -146,7 +146,7 @@ export default function UserManagement() {
                   onChange={(e) => setRoleName(e.target.value)}
                   className="w-full bg-background border border-border rounded-lg px-4 py-2 text-text-h text-sm outline-none focus:border-primary cursor-pointer"
                 >
-                  <option value="Analyst">SOC Analyst</option>
+                  <option value="Security Analyst">SOC Analyst</option>
                   <option value="Team Lead">Team Lead</option>
                   <option value="Administrator">Administrator</option>
                 </select>

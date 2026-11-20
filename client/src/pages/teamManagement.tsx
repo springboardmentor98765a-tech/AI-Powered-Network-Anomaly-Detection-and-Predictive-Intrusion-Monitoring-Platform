@@ -122,8 +122,8 @@ export default function TeamManagement() {
           {/* Admin & Team Lead Management Sidebar Cards */}
           {canManageTeams && (
             <div className="space-y-6 h-fit">
-              {/* Create Team Card - Admin Only */}
-              {isAdmin && (
+
+              {/* Create Team Card - Admin & Team Lead */}
                 <div className="bg-surface border border-border p-6 rounded-xl space-y-4">
                   <h2 className="text-lg font-heading font-semibold text-text-h flex items-center gap-2">
                     <Plus size={18} className="text-primary" /> Create New Team
@@ -154,7 +154,6 @@ export default function TeamManagement() {
                     </button>
                   </form>
                 </div>
-              )}
 
               {/* Assign Member Card - Admin & Team Lead */}
               <div className="bg-surface border border-border p-6 rounded-xl space-y-4">
@@ -209,7 +208,7 @@ export default function TeamManagement() {
                       <h3 className="font-bold text-text-h text-base">{team.team_name}</h3>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">ID: {team.id}</span>
-                        {isAdmin && (
+                        {canManageTeams && (
                           <button
                             onClick={() => handleDeleteTeam(team.id, team.team_name)}
                             title="Delete Team"

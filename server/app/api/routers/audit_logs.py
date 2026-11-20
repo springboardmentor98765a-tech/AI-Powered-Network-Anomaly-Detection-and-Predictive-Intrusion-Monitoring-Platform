@@ -32,7 +32,7 @@ def get_audit_logs(
     end_date: datetime | None = Query(None, description="Filter logs up to this timestamp"),
     limit: int = Query(50, le=200, description="Max number of records to return"),
     offset: int = Query(0, description="Pagination offset"),
-    current_user: User = Depends(require_roles(["Administrator"])),
+    current_user: User = Depends(require_roles(["Administrator", "Team Lead", "Security Analyst"])),
     db: Session = Depends(get_db)
 ):
     """
