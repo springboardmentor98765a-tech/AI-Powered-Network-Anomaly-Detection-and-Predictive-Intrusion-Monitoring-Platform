@@ -85,6 +85,8 @@ Built as part of the **Infosys Springboard Internship**.
 | Login | Dashboard |
 |---|---|
 | <img width="1908" height="890" alt="image" src="https://github.com/user-attachments/assets/d30c250f-8fba-4477-992c-bdbb5da8813f" />
+| <img width="1436" height="885" alt="image" src="https://github.com/user-attachments/assets/5dd4b1b0-12df-4a2b-a944-3a57d037ff6a" />
+
  | <img width="1357" height="888" alt="image" src="https://github.com/user-attachments/assets/71b81c91-f73e-4f58-8746-c4889e42a019" />
  |  <img width="1882" height="878" alt="image" src="https://github.com/user-attachments/assets/37e508d1-82d1-402a-9c27-41b6cb857263" />
 
