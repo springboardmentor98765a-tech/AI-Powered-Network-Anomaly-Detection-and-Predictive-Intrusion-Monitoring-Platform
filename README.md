@@ -80,13 +80,14 @@ Built as part of the **Infosys Springboard Internship**.
 
 ## 🖼️ Screenshots
 
-> Add your screenshots to `docs/screenshots/` and update the file names below.
+
 
 | Login | Dashboard |
 |---|---|
-| (<img width="1908" height="890" alt="image" src="https://github.com/user-attachments/assets/d30c250f-8fba-4477-992c-bdbb5da8813f" />
-) | (<img width="1357" height="888" alt="image" src="https://github.com/user-attachments/assets/71b81c91-f73e-4f58-8746-c4889e42a019" />
-) |
+| <img width="1908" height="890" alt="image" src="https://github.com/user-attachments/assets/d30c250f-8fba-4477-992c-bdbb5da8813f" />
+ | <img width="1357" height="888" alt="image" src="https://github.com/user-attachments/assets/71b81c91-f73e-4f58-8746-c4889e42a019" />
+ |  <img width="1882" height="878" alt="image" src="https://github.com/user-attachments/assets/37e508d1-82d1-402a-9c27-41b6cb857263" />
+
 
 | User Management | Audit Logs |
 |---|---|
