@@ -1,0 +1,80 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: #07152F;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  background: #07152F;
+  color: #E5ECF8;
+}
+
+h1, h2, h3, h4 {
+  color: #FFFFFF;
+}
+
+::placeholder {
+  color: #7F93B8;
+  opacity: 1;
+}
+
+/* Inputs and dropdowns: blue focus ring */
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #1677E8 !important;
+  box-shadow: 0 0 0 3px rgba(22, 119, 232, 0.25);
+}
+
+/* Dropdown lists and date pickers follow the dark theme */
+select option {
+  background: #0D2045;
+  color: #FFFFFF;
+}
+
+input[type="date"] {
+  color-scheme: dark;
+}
+
+/* Buttons */
+button {
+  transition: background 0.15s, filter 0.15s;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #1E4A94 !important;
+  border-color: #1677E8 !important;
+  filter: none;
+}
+
+/* Table rows */
+tbody tr:hover td {
+  background: #12306A;
+}
+
+/* Sidebar */
+aside nav a:not([aria-current="page"]):hover {
+  background: rgba(32, 197, 245, 0.12) !important;
+  color: #FFFFFF !important;
+}
+
+aside button:hover:not(:disabled) {
+  background: rgba(32, 197, 245, 0.18) !important;
+  filter: none;
+}
