@@ -84,14 +84,14 @@ Built as part of the **Infosys Springboard Internship**.
 
 | Login | Dashboard |
 |---|---|
-| ![Login](<img width="1908" height="890" alt="image" src="https://github.com/user-attachments/assets/d30c250f-8fba-4477-992c-bdbb5da8813f" />
-) | ![Dashboard](<img width="1357" height="888" alt="image" src="https://github.com/user-attachments/assets/71b81c91-f73e-4f58-8746-c4889e42a019" />
+| (<img width="1908" height="890" alt="image" src="https://github.com/user-attachments/assets/d30c250f-8fba-4477-992c-bdbb5da8813f" />
+) | (<img width="1357" height="888" alt="image" src="https://github.com/user-attachments/assets/71b81c91-f73e-4f58-8746-c4889e42a019" />
 ) |
 
 | User Management | Audit Logs |
 |---|---|
-| ![Users](<img width="1907" height="888" alt="image" src="https://github.com/user-attachments/assets/91f69ddc-c7f5-4e0d-a0ce-27e9b0641df0" />
-) | ![Audit](<img width="1890" height="891" alt="image" src="https://github.com/user-attachments/assets/7f659492-8c75-404e-b2b2-104bf7a0f7d3" />
+| (<img width="1907" height="888" alt="image" src="https://github.com/user-attachments/assets/91f69ddc-c7f5-4e0d-a0ce-27e9b0641df0" />
+) |(<img width="1890" height="891" alt="image" src="https://github.com/user-attachments/assets/7f659492-8c75-404e-b2b2-104bf7a0f7d3" />
 ) |
 
 ---
