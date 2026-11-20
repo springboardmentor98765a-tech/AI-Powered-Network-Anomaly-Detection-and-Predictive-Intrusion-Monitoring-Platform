@@ -45,21 +45,45 @@ The project is being developed in modules. **Module 1 – User Management** has 
 - Backend and frontend integration tested.
 - Git repository updated successfully.
 
-### Current Progress
-
-| Module | Description | Status |
-|---|---|---|
-| Module 1 | User Management | Completed |
-| Module 2 | Next project module | Pending |
-
-### GitHub Information
-
-- **Repository:** AI-Powered-Network-Anomaly-Detection-and-Predictive-Intrusion-Monitoring-Platform
-- **Development Branch:** `Deepthika-A`
-- **Latest Commit:** `Implement Module 1 user management`
-
 ---
 
-**Last Updated:** 15 November 2026
+### Progress Update – 20 November 2026
+
+**Module 2 – Network Monitoring Integration (Week 2, Milestone 1)**
+
+Completed the integration of live network monitoring into the existing NetShield AI platform.
+
+**Work Completed:**
+
+1. Integrated live packet capture using Wireshark TShark.
+2. Developed FastAPI endpoints for network monitoring:
+   - Network capture status
+   - Traffic summary
+   - Recent packet details
+3. Implemented Admin-only access to network monitoring APIs.
+4. Integrated the Network Monitoring dashboard into the existing Admin interface.
+5. Added live traffic statistics, including total packets, bytes, active IPs and protocol distribution.
+6. Added traffic activity visualization, top IP addresses and recent packet information.
+7. Implemented time-based and packet filtering options.
+8. Added network monitoring authorization tests.
+
+**Testing:**
+- Backend: 32 tests passed.
+- Frontend: Build successful.
+- Frontend lint: No errors; minor warnings remain.
+- Verified live packet capture and dashboard data retrieval.
+
+**Technologies Used:** Python, FastAPI, React, JavaScript, Wireshark TShark, PostgreSQL.
+
+**GitHub:** Changes successfully pushed to the `Deepthika-A` branch.
+
+**Latest Commit:** `eb133dd` – Add live network monitoring and packet capture.
+
+**Current Status:** Week 2 – Milestone 1. Network monitoring integration completed. Further validation and dashboard testing are in progress.
+
+**Next Steps:** Complete dashboard validation and prepare the Milestone 1 demonstration.
+
+
+**Last Updated:** 20 November 2026
 
 **Developer:** Deepthika
