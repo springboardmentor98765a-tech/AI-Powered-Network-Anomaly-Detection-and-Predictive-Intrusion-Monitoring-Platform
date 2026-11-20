@@ -9,6 +9,7 @@ from app.api.routes.users import router as users_router
 from app.api.routes.audit import router as audit_router
 from app.api.routes.teams import router as teams_router
 from app.api.routes.team_members import router as team_members_router
+from app.api.routes.network import router as network_router
 
 from app.core.dependencies import get_current_admin
 from app.models.user import User
@@ -60,7 +61,7 @@ app.include_router(users_router)
 app.include_router(audit_router)
 app.include_router(teams_router)
 app.include_router(team_members_router)
-
+app.include_router(network_router)
 
 @app.get("/admin/test", tags=["Admin"])
 def admin_test(

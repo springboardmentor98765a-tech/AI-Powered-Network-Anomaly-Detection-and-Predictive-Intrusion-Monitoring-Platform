@@ -34,6 +34,13 @@ const getRoleIdFromToken = (accessToken) => {
 function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [authMode, setAuthMode] = useState("login");
+  const [registration, setRegistration] = useState({
+    full_name: "",
+    email: "",
+    password: "",
+    role: "Analyst",
+  });
 
   const [token, setToken] = useState(
     () => localStorage.getItem("access_token") || ""
@@ -47,6 +54,16 @@ function App() {
   const [teams, setTeams] = useState([]);
   const [members, setMembers] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
+
+  // Live network monitoring (Admin-only).
+  const [networkStatus, setNetworkStatus] = useState(null);
+  const [networkSummary, setNetworkSummary] = useState(null);
+  const [networkPackets, setNetworkPackets] = useState([]);
+  const [networkError, setNetworkError] = useState("");
+  const [networkMinutes, setNetworkMinutes] = useState("15");
+  const [networkProtocol, setNetworkProtocol] = useState("");
+  const [networkIpFilter, setNetworkIpFilter] = useState("");
+  const [networkPortFilter, setNetworkPortFilter] = useState("");
 
   const [selectedTeam, setSelectedTeam] = useState("");
   const [activeSection, setActiveSection] = useState("users");
@@ -110,6 +127,38 @@ function App() {
       setToken(data.access_token);
       setActiveSection("users");
       setPassword("");
+    } catch {
+      setMessage("Cannot connect to backend.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // PUBLIC REGISTRATION - ANALYST OR VIEWER ONLY
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(registration),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setMessage(data.detail || "Registration failed.");
+        return;
+      }
+
+      setEmail(registration.email);
+      setPassword("");
+      setRegistration({ full_name: "", email: "", password: "", role: "Analyst" });
+      setAuthMode("login");
+      setMessage("Account created successfully. Please sign in.");
     } catch {
       setMessage("Cannot connect to backend.");
     } finally {
@@ -234,6 +283,57 @@ function App() {
       setMessage("Could not load team members.");
     }
   }, [token]);
+
+
+  // FETCH LIVE NETWORK DATA - ADMIN ONLY
+  const fetchNetworkData = useCallback(async () => {
+    if (!token || !isAdmin) return;
+
+    try {
+      const params = new URLSearchParams({ minutes: networkMinutes });
+      if (networkProtocol) params.set("protocol", networkProtocol);
+      if (networkIpFilter.trim()) params.set("ip", networkIpFilter.trim());
+      if (networkPortFilter.trim()) params.set("port", networkPortFilter.trim());
+
+      const headers = { Authorization: `Bearer ${token}` };
+      const [statusResponse, summaryResponse, packetsResponse] = await Promise.all([
+        fetch(`${API}/network/status`, { headers }),
+        fetch(`${API}/network/summary?minutes=${networkMinutes}`, { headers }),
+        fetch(`${API}/network/packets?${params.toString()}`, { headers }),
+      ]);
+
+      const statusData = await statusResponse.json();
+      const summaryData = await summaryResponse.json();
+      const packetsData = await packetsResponse.json();
+
+      if (!statusResponse.ok) {
+        throw new Error(statusData.detail || "Unable to start network capture.");
+      }
+      if (!summaryResponse.ok) {
+        throw new Error(summaryData.detail || "Unable to load network summary.");
+      }
+      if (!packetsResponse.ok) {
+        throw new Error(packetsData.detail || "Unable to load captured packets.");
+      }
+
+      setNetworkStatus(statusData);
+      setNetworkSummary(summaryData);
+      setNetworkPackets(packetsData);
+      setNetworkError(statusData.running ? "" : (statusData.error || "Capture is not running."));
+    } catch (error) {
+      setNetworkError(error.message || "Network monitoring service is unavailable.");
+    }
+  }, [token, isAdmin, networkMinutes, networkProtocol, networkIpFilter, networkPortFilter]);
+
+
+  // Refresh network statistics while the Admin is viewing Network Monitoring.
+  useEffect(() => {
+    if (!token || !isAdmin || activeSection !== "network") return undefined;
+
+    fetchNetworkData();
+    const intervalId = window.setInterval(fetchNetworkData, 5000);
+    return () => window.clearInterval(intervalId);
+  }, [token, isAdmin, activeSection, fetchNetworkData]);
 
 
   // LOAD DATA FOR AUTHENTICATED USERS
@@ -665,63 +765,85 @@ function App() {
   ).length;
 
 
-  // LOGIN PAGE
+  // LOGIN AND PUBLIC REGISTRATION PAGE
   if (!token) {
     return (
       <div className="login-page">
         <div className="login-card">
           <div className="brand-icon">🛡️</div>
-
           <h1>NetShield AI</h1>
+          <p className="subtitle">Network Security Management</p>
 
-          <p className="subtitle">
-            Network Security Management
-          </p>
+          <div className="auth-tabs">
+            <button
+              type="button"
+              className={authMode === "login" ? "auth-tab active" : "auth-tab"}
+              onClick={() => { setAuthMode("login"); setMessage(""); }}
+            >Sign In</button>
+            <button
+              type="button"
+              className={authMode === "register" ? "auth-tab active" : "auth-tab"}
+              onClick={() => { setAuthMode("register"); setMessage(""); }}
+            >Register</button>
+          </div>
 
-          <h2>Sign In</h2>
-
-          <p className="description">
-            Sign in to access your dashboard
-          </p>
-
-          <form onSubmit={handleLogin}>
-            <label>Email Address</label>
-
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-            />
-
-            <label>Password</label>
-
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-            />
-
-            <button type="submit" disabled={loading}>
-              {loading ? "Signing in..." : "Login"}
-            </button>
-          </form>
-
-          {message && (
-            <p className="login-message">{message}</p>
+          {authMode === "login" ? (
+            <>
+              <h2>Sign In</h2>
+              <p className="description">Sign in to access your dashboard</p>
+              <form onSubmit={handleLogin}>
+                <label>Email Address</label>
+                <input type="email" value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email" required />
+                <label>Password</label>
+                <input type="password" value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password" required />
+                <button type="submit" disabled={loading}>
+                  {loading ? "Signing in..." : "Login"}
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <h2>Create Account</h2>
+              <p className="description">Register as an Analyst or Viewer</p>
+              <form onSubmit={handleRegister}>
+                <label>Full Name</label>
+                <input type="text" minLength={2} maxLength={100}
+                  value={registration.full_name}
+                  onChange={(e) => setRegistration({ ...registration, full_name: e.target.value })}
+                  placeholder="Enter your full name" required />
+                <label>Email Address</label>
+                <input type="email" value={registration.email}
+                  onChange={(e) => setRegistration({ ...registration, email: e.target.value })}
+                  placeholder="Enter your email" required />
+                <label>Password</label>
+                <input type="password" minLength={8} maxLength={128}
+                  value={registration.password}
+                  onChange={(e) => setRegistration({ ...registration, password: e.target.value })}
+                  placeholder="Create a password (minimum 8 characters)" required />
+                <label>Choose Role</label>
+                <select value={registration.role}
+                  onChange={(e) => setRegistration({ ...registration, role: e.target.value })}
+                  required>
+                  <option value="Analyst">Analyst</option>
+                  <option value="Viewer">Viewer</option>
+                </select>
+                <button type="submit" disabled={loading}>
+                  {loading ? "Creating account..." : "Create Account"}
+                </button>
+              </form>
+            </>
           )}
 
-          <p className="footer-text">
-            NetShield AI - User Management Module
-          </p>
+          {message && <p className="login-message">{message}</p>}
+          <p className="footer-text">NetShield AI - Network Security Management</p>
         </div>
       </div>
     );
   }
-
 
   // ROLE-SPECIFIC DASHBOARDS FOR ANALYST AND VIEWER
   if (!isAdmin) {
@@ -973,6 +1095,13 @@ function App() {
             onClick={() => setActiveSection("audit")}
           >
             Audit Logs
+          </button>
+
+          <button
+            className={activeSection === "network" ? "nav-active" : ""}
+            onClick={() => setActiveSection("network")}
+          >
+            Network Monitoring
           </button>
         </div>
 
@@ -1468,6 +1597,153 @@ function App() {
                 </tbody>
               </table>
             </div>
+          </section>
+        )}
+
+        {/* LIVE NETWORK MONITORING */}
+        {activeSection === "network" && (
+          <section className="network-page">
+            <div className="network-heading">
+              <div>
+                <h2>Live Network Monitoring</h2>
+                <p>Real Wi-Fi traffic captured through the Wireshark TShark engine.</p>
+              </div>
+              <div className="network-controls">
+                <label htmlFor="network-window">Time window</label>
+                <select id="network-window" value={networkMinutes}
+                  onChange={(e) => setNetworkMinutes(e.target.value)}>
+                  <option value="15">Last 15 minutes</option>
+                  <option value="30">Last 30 minutes</option>
+                  <option value="60">Last 1 hour</option>
+                  <option value="1440">Last 24 hours</option>
+                </select>
+                <button type="button" onClick={fetchNetworkData}>Refresh</button>
+              </div>
+            </div>
+
+            <div className="capture-status">
+              <span className={networkStatus?.running ? "live-dot" : "offline-dot"} />
+              <strong>{networkStatus?.running ? "LIVE CAPTURE RUNNING" : "CAPTURE NOT RUNNING"}</strong>
+              <span>{networkStatus?.interface ? `Interface: ${networkStatus.interface}` : "Waiting for capture interface"}</span>
+              {networkStatus?.packets_buffered !== undefined && (
+                <span>{networkStatus.packets_buffered.toLocaleString()} packets buffered</span>
+              )}
+            </div>
+
+            {networkError && (
+              <div className="network-error">
+                <strong>Capture status:</strong> {networkError}
+                <p>Check that Wireshark/Npcap is installed and that the backend has permission to capture packets.</p>
+              </div>
+            )}
+
+            <div className="network-stats-grid">
+              <div className="network-stat-card"><span>Total Packets</span>
+                <strong>{networkSummary?.total_packets?.toLocaleString() ?? "—"}</strong>
+                <small>In selected time window</small></div>
+              <div className="network-stat-card"><span>Total Traffic</span>
+                <strong>{networkSummary ? `${(networkSummary.total_bytes / 1024).toFixed(1)} KB` : "—"}</strong>
+                <small>Captured packet bytes</small></div>
+              <div className="network-stat-card"><span>Active IP Addresses</span>
+                <strong>{networkSummary?.active_ips ?? "—"}</strong>
+                <small>Unique source and destination IPs</small></div>
+              <div className="network-stat-card"><span>Protocols Observed</span>
+                <strong>{networkSummary?.protocols?.length ?? "—"}</strong>
+                <small>Classified packet protocols</small></div>
+            </div>
+
+            <div className="network-two-column">
+              <div className="network-panel">
+                <h3>Traffic Activity</h3>
+                <p className="network-muted">Packet count per time interval</p>
+                <div className="traffic-chart">
+                  {(networkSummary?.traffic_timeline || []).map((bucket, index) => {
+                    const peak = Math.max(1, ...(networkSummary?.traffic_timeline || []).map((item) => item.packets));
+                    return (
+                      <div className="traffic-bar-column" key={`${bucket.time}-${index}`}>
+                        <div className="traffic-bar-value">{bucket.packets}</div>
+                        <div className="traffic-bar-track">
+                          <div className="traffic-bar" style={{ height: `${Math.max(3, (bucket.packets / peak) * 100)}%` }} />
+                        </div>
+                        <small>{bucket.time}</small>
+                      </div>
+                    );
+                  })}
+                  {!networkSummary?.traffic_timeline?.length && <p className="network-empty">Waiting for packet activity…</p>}
+                </div>
+              </div>
+
+              <div className="network-panel">
+                <h3>Protocol Distribution</h3>
+                <div className="table-container"><table>
+                  <thead><tr><th>Protocol</th><th>Packets</th></tr></thead>
+                  <tbody>
+                    {(networkSummary?.protocols || []).map((item) => (
+                      <tr key={item.protocol}><td>{item.protocol}</td><td>{item.packets}</td></tr>
+                    ))}
+                    {!networkSummary?.protocols?.length && <tr><td colSpan="2">No packets captured yet.</td></tr>}
+                  </tbody>
+                </table></div>
+              </div>
+            </div>
+
+            <div className="network-two-column">
+              <div className="network-panel"><h3>Top Source IP Addresses</h3><div className="table-container"><table>
+                <thead><tr><th>Source IP</th><th>Packets</th></tr></thead>
+                <tbody>
+                  {(networkSummary?.top_sources || []).map((item) => <tr key={item.ip}><td>{item.ip}</td><td>{item.packets}</td></tr>)}
+                  {!networkSummary?.top_sources?.length && <tr><td colSpan="2">No source data yet.</td></tr>}
+                </tbody>
+              </table></div></div>
+              <div className="network-panel"><h3>Top Destination IP Addresses</h3><div className="table-container"><table>
+                <thead><tr><th>Destination IP</th><th>Packets</th></tr></thead>
+                <tbody>
+                  {(networkSummary?.top_destinations || []).map((item) => <tr key={item.ip}><td>{item.ip}</td><td>{item.packets}</td></tr>)}
+                  {!networkSummary?.top_destinations?.length && <tr><td colSpan="2">No destination data yet.</td></tr>}
+                </tbody>
+              </table></div></div>
+            </div>
+
+            <div className="network-panel">
+              <div className="network-heading">
+                <div><h3>Recent Captured Packets</h3><p className="network-muted">Live packet details from your network interface</p></div>
+                <div className="network-filters">
+                  <input aria-label="Filter by IP address" placeholder="Filter IP" value={networkIpFilter}
+                    onChange={(e) => setNetworkIpFilter(e.target.value)} />
+                  <input aria-label="Filter by port" placeholder="Port" value={networkPortFilter}
+                    onChange={(e) => setNetworkPortFilter(e.target.value)} />
+                  <select aria-label="Filter by protocol" value={networkProtocol}
+                    onChange={(e) => setNetworkProtocol(e.target.value)}>
+                    <option value="">All protocols</option>
+                    {["TCP", "UDP", "TLS", "DNS", "HTTP", "ICMP", "ICMPV6", "ARP"].map((value) => <option key={value} value={value}>{value}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="table-container"><table>
+                <thead><tr><th>Time</th><th>Source IP</th><th>Destination IP</th><th>Source Port</th><th>Destination Port</th><th>Protocol</th><th>Size</th><th>Direction</th></tr></thead>
+                <tbody>
+                  {networkPackets.map((packet, index) => (
+                    <tr key={`${packet.timestamp}-${index}`}>
+                      <td>{new Date(packet.timestamp * 1000).toLocaleTimeString()}</td>
+                      <td>{packet.source_ip}</td><td>{packet.destination_ip}</td>
+                      <td>{packet.source_port}</td><td>{packet.destination_port}</td>
+                      <td>{packet.protocol}</td><td>{packet.bytes} B</td><td>{packet.direction}</td>
+                    </tr>
+                  ))}
+                  {!networkPackets.length && <tr><td colSpan="8">No packets match the selected filters yet.</td></tr>}
+                </tbody>
+              </table></div>
+            </div>
+
+            <div className="network-alert-panel">
+              <div><strong>SIMULATED DEMO ALERT</strong><span>Example suspicious-traffic alert for interface demonstration only.</span></div>
+              <span className="simulated-label">SIMULATED — NOT DETECTED</span>
+            </div>
+            <p className="network-footnote">
+              Capture is a live packet feed. Up to 10,000 recent packets are retained in memory.
+              The 24-hour filter covers the current capture session only, not traffic from before capture started.
+              The simulated alert is excluded from all traffic metrics.
+            </p>
           </section>
         )}
       </main>

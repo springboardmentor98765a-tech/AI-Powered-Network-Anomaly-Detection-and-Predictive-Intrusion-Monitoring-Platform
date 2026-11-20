@@ -477,3 +477,89 @@ td {
     flex-direction: column;
   }
 }
+
+
+/* Login and public registration tabs */
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 28px 0 8px;
+  padding: 5px;
+  background: #0b1729;
+  border: 1px solid #263b59;
+  border-radius: 10px;
+}
+
+.auth-tabs .auth-tab {
+  padding: 10px;
+  background: transparent;
+  color: #9caec5;
+}
+
+.auth-tabs .auth-tab.active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.login-card select {
+  width: 100%;
+  padding: 13px;
+  margin-bottom: 20px;
+  background: #0b1729;
+  border: 1px solid #344967;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+
+/* LIVE NETWORK MONITORING */
+.network-page { display: flex; flex-direction: column; gap: 20px; }
+.network-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+.network-heading h2, .network-panel h3 { margin: 0 0 8px; color: #fff; }
+.network-heading p, .network-muted, .network-footnote { color: #9caec5; font-size: 13px; }
+.network-controls, .network-filters { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.network-controls label { margin: 0; color: #9caec5; }
+.network-controls select, .network-filters select, .network-filters input {
+  padding: 10px 12px; margin: 0; background: #0b1729; color: #fff;
+  border: 1px solid #344967; border-radius: 8px;
+}
+.capture-status {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 16px;
+  background: #102b2a; border: 1px solid #1d5b4d; border-radius: 10px; color: #a7f3d0; font-size: 13px;
+}
+.capture-status span:last-child, .capture-status span:nth-last-child(2) { color: #9caec5; }
+.live-dot, .offline-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; background: #4ade80; box-shadow: 0 0 10px rgba(74,222,128,.6); }
+.offline-dot { background: #f87171; box-shadow: none; }
+.network-error { padding: 14px 16px; border: 1px solid #854d0e; background: #35240e; border-radius: 9px; color: #fde68a; font-size: 13px; }
+.network-error p { margin-top: 6px; color: #fcd34d; }
+.network-stats-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 15px; }
+.network-stat-card, .network-panel { padding: 20px; background: #142238; border: 1px solid #263b59; border-radius: 12px; min-width: 0; }
+.network-stat-card span { display: block; color: #9caec5; font-size: 13px; }
+.network-stat-card strong { display: block; margin: 10px 0 5px; color: #60a5fa; font-size: 28px; }
+.network-stat-card small { color: #71839c; font-size: 11px; }
+.network-two-column { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(0,1fr); gap: 18px; }
+.network-panel { overflow: hidden; }
+.network-panel .table-container { margin-top: 12px; }
+.traffic-chart { height: 220px; display: flex; align-items: stretch; gap: 8px; padding-top: 20px; overflow-x: auto; }
+.traffic-bar-column { min-width: 25px; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; }
+.traffic-bar-value { color: #9caec5; font-size: 10px; }
+.traffic-bar-track { width: 100%; height: 145px; display: flex; align-items: flex-end; background: #0b1729; border-radius: 5px 5px 0 0; overflow: hidden; }
+.traffic-bar { width: 100%; min-height: 3px; background: linear-gradient(180deg,#60a5fa,#2563eb); border-radius: 5px 5px 0 0; }
+.traffic-bar-column small { color: #71839c; font-size: 9px; white-space: nowrap; }
+.network-empty { color: #9caec5; margin: auto; font-size: 13px; }
+.network-filters input { width: 120px; }
+.network-alert-panel { display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap; padding: 16px 18px; background: #302417; border: 1px solid #785323; border-radius: 10px; }
+.network-alert-panel div { display: flex; flex-direction: column; gap: 5px; }
+.network-alert-panel strong { color: #fbbf24; font-size: 13px; }
+.network-alert-panel span { color: #d6c5a2; font-size: 12px; }
+.network-alert-panel .simulated-label { color: #fcd34d; font-weight: 700; }
+.network-footnote { line-height: 1.6; }
+@media (max-width: 1000px) { .network-stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 700px) {
+  .network-two-column { grid-template-columns: 1fr; }
+  .network-stats-grid { grid-template-columns: 1fr; }
+  .network-controls, .network-filters { width: 100%; }
+  .network-controls select, .network-filters input, .network-filters select { flex: 1; min-width: 90px; }
+}
