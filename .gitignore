@@ -13,9 +13,25 @@ __pycache__/
 node_modules/
 dist/
 
-# VS Code
-.vscode/
+# Network traffic datasets
+backend/data/*.csv
+
 
 # System files
+.DS_Store
+Thumbs.db
+
+
+# Frontend dependencies
+node_modules/
+dist/
+
+
+# Local dataset
+backend/data/*.csv
+
+
+# Editor and operating system files
+.vscode/
 .DS_Store
 Thumbs.db

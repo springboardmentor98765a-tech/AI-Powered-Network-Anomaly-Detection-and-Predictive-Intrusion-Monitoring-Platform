@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Dashboard from "./Dashboard";
 import {
   Activity, ShieldCheck, Eye, EyeOff, Mail, LockKeyhole, UserRound,
   Building2, ArrowRight, Github, Globe2, CheckCircle2, AlertCircle
@@ -8,6 +9,8 @@ const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function App() {
   const [mode, setMode] = useState("login");
+  const [user, setUser] = useState(null);
+  const [page, setPage] = useState("auth");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState({ type: "", text: "" });
@@ -59,12 +62,13 @@ export default function App() {
           : "Account created. Sign in when your account is ready."
       });
       if (mode === "login") {
-        // Demo: verify the session with GET /auth/me. The backend stores the JWT in an HttpOnly cookie.
         const me = await fetch(`${API}/auth/me`, { credentials: "include" });
-        if (me.ok) {
-          const user = await me.json();
-          setNotice({ type: "success", text: `Welcome, ${user.full_name}. Role: ${user.role}.` });
+        if(!me.ok) {
+          throw new Error("Login succeeded, but session verification failed.");
         }
+        const loggedInUser = await me.json();
+        setUser(loggedInUser);
+        setPage("dashboard");
       } else {
         switchMode("login");
       }
@@ -78,6 +82,38 @@ export default function App() {
   function googleAuth() {
     window.location.href = `${API}/auth/google`;
   }
+  async function handleLogout() {
+  try {
+    const response = await fetch(`${API}/auth/logout`, {
+      method: "POST",
+      credentials: "include"
+    });
+
+    if (!response.ok) {
+      throw new Error("Logout failed. Please try again.");
+    }
+
+    setUser(null);
+    setPage("auth");
+    switchMode("login");
+    setForm((previous) => ({
+      ...previous,
+      password: "",
+      confirm_password: ""
+    }));
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+  if (page === "dashboard") {
+  return (
+    <Dashboard
+      user={user}
+      onLogout={handleLogout}
+    />
+  );
+}  
 
   return (
     <main className="page-shell">
@@ -155,6 +191,7 @@ export default function App() {
                   <option value="SECURITY_ANALYST">Security Analyst</option>
                   <option value="SOC_TEAM">SOC Team</option>
                   <option value="ENTERPRISE">Enterprise</option>
+                  <option value="ADMINISTRATOR">Administrator</option>
                 </select>
               </div>
               {form.role === "ENTERPRISE" && <>

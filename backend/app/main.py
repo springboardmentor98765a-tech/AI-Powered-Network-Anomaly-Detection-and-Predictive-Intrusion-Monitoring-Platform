@@ -1,6 +1,13 @@
+from .monitoring import (
+    get_monitoring_summary,
+    get_monitoring_flows,
+    get_monitoring_timeline,
+    generate_monitoring_csv
+)
+from fastapi.responses import StreamingResponse
 from contextlib import asynccontextmanager
 from urllib.parse import urlencode
-from fastapi import FastAPI, Depends, HTTPException, Response, Request
+from fastapi import FastAPI, Depends, HTTPException, Response, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
@@ -13,6 +20,8 @@ from .database import Base, engine, get_db
 from .models import User, Role
 from .schemas import RegisterRequest, LoginRequest, UserResponse
 from .security import hash_password, verify_password, create_access_token, decode_access_token
+
+    
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -153,3 +162,54 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
         raise
     except Exception:
         raise HTTPException(status_code=401, detail="Google authentication could not be completed.")
+
+@app.get("/monitoring/summary")
+def monitoring_summary():
+    return get_monitoring_summary()
+
+@app.get("/monitoring/flows")
+def monitoring_flows(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=25, ge=1, le=100),
+    protocol: str | None = None,
+    label: str | None = None,
+    traffic_type: str | None = None,
+    user: User = Depends(current_user)
+):
+    return get_monitoring_flows(
+        page=page,
+        page_size=page_size,
+        protocol=protocol,
+        label=label,
+        traffic_type=traffic_type
+    )
+
+@app.get("/monitoring/timeline")
+def monitoring_timeline(
+    interval: str = Query(default="hour", pattern="^(hour|day)$"),
+    user: User = Depends(current_user)
+):
+    return get_monitoring_timeline(interval=interval)
+
+@app.get("/monitoring/export")
+def monitoring_export(
+    protocol: str | None = None,
+    label: str | None = None,
+    traffic_type: str | None = None,
+    user: User = Depends(current_user)
+):
+    csv_content = generate_monitoring_csv(
+        protocol=protocol,
+        label=label,
+        traffic_type=traffic_type
+    )
+
+    return StreamingResponse(
+        iter([csv_content]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": (
+                'attachment; filename="netshield_traffic_report.csv"'
+            )
+        }
+    )
