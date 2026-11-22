@@ -195,7 +195,7 @@ Generated local folders omitted above: `backend/.venv/`, `backend/app/__pycache_
 ### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/springboardmentor98765a-tech/AI-Powered-Network-Anomaly-Detection-and-Predictive-Intrusion-Monitoring-Platform.git
 cd AI-Powered-Network-Anomaly-Detection-and-Predictive-Intrusion-Monitoring-Platform
 ```
 
