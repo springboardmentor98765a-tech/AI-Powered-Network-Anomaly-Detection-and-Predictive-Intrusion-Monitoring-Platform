@@ -1,11 +1,12 @@
-NetShield AI
-AI-Powered Network Anomaly Detection and Predictive Intrusion Monitoring Platform
+# NetShield AI
 
-NetShield AI is a network security monitoring platform designed to analyse network traffic, identify unusual activities, detect potential intrusions and generate security alerts.
+## AI-Powered Network Anomaly Detection and Predictive Intrusion Monitoring Platform
 
-The platform combines machine learning, network traffic analysis and a centralized security dashboard to help security analysts monitor suspicious network behaviour.
+NetShield AI is a network security monitoring platform designed to analyse network traffic, identify unusual activities, detect potential intrusions, and generate security alerts.
 
-Project Objectives
+The platform combines machine learning, network traffic analysis, and a centralized security dashboard to help security analysts monitor suspicious network behaviour.
+
+## Project Objectives
 
 - Monitor network traffic and analyse network flows.
 - Identify unusual network behaviour using machine learning.
@@ -16,9 +17,10 @@ Project Objectives
 - Implement authentication and role-based access control.
 - Maintain audit records of important platform activities.
 
-Technology Stack
+## Technology Stack
 
-Backend
+### Backend
+
 - Python
 - FastAPI
 - SQLAlchemy
@@ -26,7 +28,8 @@ Backend
 - JWT Authentication
 - bcrypt
 
-Frontend
+### Frontend
+
 - Next.js
 - React.js
 - JavaScript
@@ -35,7 +38,8 @@ Frontend
 - Tailwind CSS
 - Chart.js
 
-Machine Learning
+### Machine Learning
+
 - Scikit-learn
 - Isolation Forest
 - Random Forest
@@ -43,16 +47,18 @@ Machine Learning
 - NumPy
 - Pandas
 
-Development and Testing
+### Development and Testing
+
 - Visual Studio Code
 - Git and GitHub
 - Pytest
 - Postman
 - Docker and Docker Compose
 
-Major Project Modules
+## Major Project Modules
 
-1. User Management
+### 1. User Management
+
 - User authentication and login.
 - Password hashing.
 - JWT-based authentication.
@@ -61,40 +67,45 @@ Major Project Modules
 - Team management.
 - Audit logging.
 
-2. Network Monitoring
+### 2. Network Monitoring
+
 - Network traffic collection.
 - Traffic preprocessing.
 - Protocol analysis.
 - Network traffic visualization.
 - CSV-based traffic ingestion.
 
-3. Anomaly Detection
+### 3. Anomaly Detection
+
 - Network behaviour analysis.
 - Isolation Forest-based anomaly detection.
 - Identification of unusual network activities.
 
-4. Intrusion Prediction
+### 4. Intrusion Prediction
+
 - Machine learning-based attack classification.
 - Risk scoring.
 - Attack probability analysis.
 - Intrusion forecasting.
 
-5. Alert Management
+### 5. Alert Management
+
 - Threat alert generation.
 - Alert prioritization.
 - Incident management.
 - Security notifications.
 
-6. Analytics Dashboard
+### 6. Analytics Dashboard
+
 - Network traffic analytics.
 - Attack visualization.
 - Security metrics.
 - Threat intelligence reporting.
 
-Project Structure
+## Project Structure
 
+```text
 AI-Powered-Network-Anomaly-Detection-and-Predictive-Intrusion-Monitoring-Platform/
-|
 ├── backend/
 │   ├── app/
 │   │   ├── routers/
@@ -106,109 +117,126 @@ AI-Powered-Network-Anomaly-Detection-and-Predictive-Intrusion-Monitoring-Platfor
 │   │   ├── schemas.py
 │   │   ├── database.py
 │   │   └── audit.py
-│   |
-│   ├── tests/
-│   └── requirements.txt
-|
+│   └── tests/
+├── requirements.txt
 ├── frontend/
 │   ├── app/
 │   ├── components/
 │   ├── lib/
 │   └── package.json
 ├── README.md
-├── LICENSE
+└── LICENSE
+```
 
-Installation and Setup
+## Installation and Setup
 
-Requirements
+### Requirements
+
 - Python 3.11 or 3.12 recommended.
 - Node.js.
 - npm.
 - Git.
 
-1. Clone the Repository
+### 1. Clone the Repository
 
+```bash
 git clone <repository-url>
 cd AI-Powered-Network-Anomaly-Detection-and-Predictive-Intrusion-Monitoring-Platform
+```
 
-2. Setup Backend
+### 2. Setup Backend
 
+```bash
 cd backend
 
 python3 -m venv .venv
-
 source .venv/bin/activate
 
 pip install -r requirements.txt
+```
 
-3. Train Machine Learning Models
+### 3. Train Machine Learning Models
 
+```bash
 python -m app.ml.train --rows 5000
+```
 
-The default training workflow uses synthetic network traffic. 
+The default training workflow uses synthetic network traffic.
+
 Random Forest can be used when the optional XGBoost runtime is unavailable.
 
-4. Start Backend
+### 4. Start Backend
 
+```bash
 uvicorn app.main:app --reload
+```
 
 Backend address:
 
-http://localhost:8000
-
-
+[http://localhost:8000](http://localhost:8000)
 
 API documentation:
 
-http://localhost:8000/docs
+[http://localhost:8000/docs](http://localhost:8000/docs)
 
-
-
-5. Setup Frontend
+### 5. Setup Frontend
 
 Open another terminal:
 
+```bash
 cd frontend
 
 npm install
-
 npm run dev
+```
 
 Frontend address:
 
-http://localhost:3000
+[http://localhost:3000](http://localhost:3000)
 
+## Testing
 
-
-Testing
-
-Backend Tests
+### Backend Tests
 
 From the backend directory:
 
+```bash
 python -m pytest -v
+```
 
-Frontend Production Build
+### Frontend Production Build
 
 From the frontend directory:
 
+```bash
 npm run build
+```
 
-Demonstration workflow
+## Demonstration Workflow
 
-For a module-by-module meeting explanation, Wireshark CSV-export procedure, and recording sequence, see docs/MEETING_WORKFLOW.md. The platform uses the built-in simulator, uploaded flow CSVs, and Wireshark packet-list CSV exports for a safe local demonstration; it does not claim to capture packets from the host operating system.
+For a module-by-module meeting explanation, Wireshark CSV-export procedure, and recording sequence, see `docs/MEETING_WORKFLOW.md`.
 
-An optional administrator-controlled live sensor is also available when tshark is installed. It captures only flow metadata from the configured, authorised interface and sends it through the existing ML pipeline. See the live-sensor section of the meeting workflow before enabling it.
+The platform uses the built-in simulator, uploaded flow CSVs, and Wireshark packet-list CSV exports for a safe local demonstration. It does not claim to capture packets from the host operating system.
 
-Docker deployment
+An optional administrator-controlled live sensor is also available when `tshark` is installed. It captures only flow metadata from the configured, authorised interface and sends it through the existing ML pipeline.
 
-The repository includes a production-style PostgreSQL, FastAPI, and Next.js Compose stack. Copy .env.example to .env, set unique secrets, then run:
+See the live-sensor section of the meeting workflow before enabling it.
 
+## Docker Deployment
+
+The repository includes a production-style PostgreSQL, FastAPI, and Next.js Compose stack.
+
+Copy `.env.example` to `.env`, set unique secrets, then run:
+
+```bash
 docker compose up --build
+```
 
-Read docs/DEPLOYMENT.md before cloud deployment. Production disables automatic demo-user creation and requires an explicit JWT signing secret.
+Read `docs/DEPLOYMENT.md` before cloud deployment.
 
-Dataset Information
+Production disables automatic demo-user creation and requires an explicit JWT signing secret.
+
+## Dataset Information
 
 The initial demonstration supports synthetic network traffic.
 
@@ -221,7 +249,7 @@ Real datasets must be obtained separately and configured before training on them
 
 Synthetic demonstration results should not be interpreted as real-world detection performance.
 
-Security Considerations
+## Security Considerations
 
 - Passwords must be stored as secure hashes.
 - Authentication tokens must be protected.
@@ -230,13 +258,13 @@ Security Considerations
 - Audit logs must not contain passwords or authentication tokens.
 - Demo credentials must be changed before deployment.
 
-Project Status
+## Project Status
 
 This project is being developed as part of the Infosys Springboard Virtual Internship.
 
-Implementation, testing and documentation are organized according to the mentor-provided project milestones.
+Implementation, testing, and documentation are organized according to the mentor-provided project milestones.
 
-Future Enhancements
+## Future Enhancements
 
 - Real-time packet collection.
 - Advanced threat intelligence integrations.
