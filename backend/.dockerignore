@@ -1,0 +1,6 @@
+.venv
+__pycache__
+*.pyc
+netshield.db
+test_netshield.db
+.env

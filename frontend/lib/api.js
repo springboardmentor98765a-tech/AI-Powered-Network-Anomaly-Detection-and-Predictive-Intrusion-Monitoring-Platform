@@ -49,7 +49,7 @@ export async function api(path, { method = "GET", body, form, text = false } = {
 }
 
 // Role check helper: can(user, "analyst") is true for analysts and admins
-const LEVEL = { viewer: 1, analyst: 2, admin: 3 };
+const LEVEL = { viewer: 1, analyst: 2, team_lead: 2, admin: 3 };
 export const can = (user, role) => !!user && LEVEL[user.role] >= LEVEL[role];
 
 // Backend stores UTC time without a 'Z' — add it so the browser shows local time

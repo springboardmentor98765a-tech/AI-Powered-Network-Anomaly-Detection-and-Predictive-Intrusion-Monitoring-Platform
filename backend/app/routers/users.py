@@ -32,6 +32,91 @@ def create_user(body: schemas.UserCreate, request: Request, db: Session = Depend
     return user
 
 
+@router.get(
+    "/admin/registration-requests",
+    response_model=list[schemas.UserOut],
+)
+def registration_requests(
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(require_role("admin")),
+):
+    return (
+        db.query(models.User)
+        .filter(models.User.approval_status == "pending")
+        .order_by(models.User.created_at.asc())
+        .all()
+    )
+
+
+@router.post(
+    "/users/{user_id}/approve",
+    response_model=schemas.UserOut,
+)
+def approve_registration(
+    user_id: int,
+    body: schemas.ApproveRegistration,
+    request: Request,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(require_role("admin")),
+):
+    user = db.get(models.User, user_id)
+
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    if user.approval_status != "pending":
+        raise HTTPException(409, "Request is no longer pending")
+
+    # Only the authenticated administrator assigns the effective role.
+    user.role = body.role
+    user.approval_status = "approved"
+    user.is_active = True
+
+    db.commit()
+    db.refresh(user)
+
+    log_action(
+        db,
+        admin,
+        "registration_approved",
+        f"Approved {user.username} as {user.role}",
+        request,
+    )
+
+    return user
+
+
+@router.post("/users/{user_id}/reject")
+def reject_registration(
+    user_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(require_role("admin")),
+):
+    user = db.get(models.User, user_id)
+
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    if user.approval_status != "pending":
+        raise HTTPException(409, "Request is no longer pending")
+
+    user.approval_status = "rejected"
+    user.is_active = False
+
+    db.commit()
+    db.refresh(user)
+
+    log_action(
+        db,
+        admin,
+        "registration_rejected",
+        f"Rejected registration for {user.username}",
+        request,
+    )
+
+    return {"message": "Registration rejected"}
+
 @router.patch("/users/{user_id}", response_model=schemas.UserOut)
 def update_user(user_id: int, body: schemas.UserUpdate, request: Request, db: Session = Depends(get_db),
                 admin: models.User = Depends(require_role("admin"))):

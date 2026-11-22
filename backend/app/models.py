@@ -22,7 +22,18 @@ class User(Base):
     email = Column(String(120), unique=True, nullable=False)
     full_name = Column(String(120), default="")
     hashed_password = Column(String(200), nullable=False)
-    role = Column(String(20), default="analyst")  # admin | analyst | viewer
+    role = Column(String(20), default="analyst")
+     # admin | analyst | viewer
+    # Requested role is not the effective account role.
+    requested_role = Column(String(20), nullable=True)
+
+# Existing users remain approved; public registrations start pending.
+    approval_status = Column(
+    String(20),
+    nullable=False,
+    default="approved",
+    server_default="approved",
+    )
     team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=utcnow)
@@ -71,7 +82,7 @@ class TrafficFlow(Base):
     risk_score = Column(Integer, default=0)
     risk_level = Column(String(10), default="Low")
     threat_intel_hit = Column(Boolean, default=False)
-    source = Column(String(20), default="sensor")  # sensor | upload
+    source = Column(String(20), default="sensor")  # sensor | upload | wireshark_csv
 
 
 class Incident(Base):

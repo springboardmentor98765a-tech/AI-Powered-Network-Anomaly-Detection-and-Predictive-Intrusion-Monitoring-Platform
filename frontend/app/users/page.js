@@ -12,6 +12,7 @@ const EMPTY_USER = { username: "", email: "", full_name: "", password: "", role:
 export default function UsersPage() {
   const me = getUser();
   const users = usePolling(() => api("/api/users"), 30000);
+  const registrationRequests = usePolling(() => api("/api/admin/registration-requests"), 30000);
   const teams = usePolling(() => api("/api/teams"), 60000);
   const audit = usePolling(() => api("/api/audit-logs?limit=100"), 15000);
   const [form, setForm] = useState(EMPTY_USER);
@@ -23,7 +24,7 @@ export default function UsersPage() {
 
   async function run(fn, success) {
     setErr(""); setMsg("");
-    try { await fn(); setMsg(success); users.refresh(); teams.refresh(); audit.refresh(); return true; }
+    try { await fn(); setMsg(success); users.refresh(); registrationRequests.refresh(); teams.refresh(); audit.refresh(); return true; }
     catch (e) { setErr(e.message); return false; }
   }
 
@@ -38,6 +39,14 @@ export default function UsersPage() {
     if (ok) setTeam({ name: "", description: "" });
   };
   const patch = (u, body, text) => run(() => api(`/api/users/${u.id}`, { method: "PATCH", body }), text);
+  const approveRequest = (u, role) => run(
+    () => api(`/api/users/${u.id}/approve`, { method: "POST", body: { role } }),
+    `${u.username} has been approved as ${role}.`
+  );
+  const rejectRequest = (u) => run(
+    () => api(`/api/users/${u.id}/reject`, { method: "POST" }),
+    `${u.username}'s registration was rejected.`
+  );
   const teamName = (id) => teams.data?.find((t) => t.id === id)?.name || "-";
 
   return (
@@ -104,6 +113,25 @@ export default function UsersPage() {
           </Panel>
         </div>
       </div>
+
+      <Panel title="Registration requests" subtitle="New accounts remain inactive until an administrator assigns an effective role.">
+        {registrationRequests.error && <ErrorNote message={registrationRequests.error} />}
+        {!registrationRequests.data ? <Empty>Loading registration requests...</Empty> : registrationRequests.data.length === 0 ? <Empty>No pending registration requests.</Empty> : (
+          <div className="overflow-x-auto">
+            <table className="table">
+              <thead><tr><th>Name</th><th>Email</th><th>Requested role</th><th>Action</th></tr></thead>
+              <tbody>
+                {registrationRequests.data.map((u) => (
+                  <tr key={u.id}>
+                    <td>{u.full_name || u.username}</td><td className="text-muted">{u.email}</td><td>{u.requested_role || "analyst"}</td>
+                    <td className="flex gap-2"><button className="btn-primary" onClick={() => approveRequest(u, u.requested_role || "analyst")}>Approve</button><button className="btn-ghost" onClick={() => rejectRequest(u)}>Reject</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
 
       <Panel title="Audit log" subtitle="Every login and change is recorded here">
         {!audit.data ? <Empty>Loading...</Empty> : (

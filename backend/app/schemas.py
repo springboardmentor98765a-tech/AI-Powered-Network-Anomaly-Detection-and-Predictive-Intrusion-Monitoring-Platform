@@ -3,15 +3,52 @@
 """Schemas check incoming data automatically, like a form that rejects empty required fields."""
 from datetime import datetime
 from typing import Literal, Optional
-
-from pydantic import BaseModel, ConfigDict, Field
-
-Role = Literal["admin", "analyst", "viewer"]
-
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+Role = Literal["admin", "analyst", "team_lead", "viewer"]
+RequestedRole = Literal["analyst", "team_lead"]
 
 class LoginRequest(BaseModel):
-    username: str
-    password: str
+    username: str = Field(min_length=1, max_length=120)
+    password: str = Field(min_length=1, max_length=72)
+
+
+class RegistrationRequest(BaseModel):
+    full_name: str = Field(min_length=2, max_length=120)
+    email: str = Field(
+        pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+        max_length=120,
+    )
+    password: str = Field(min_length=8, max_length=120)
+    requested_role: RequestedRole
+
+    @field_validator("full_name")
+    @classmethod
+    def clean_name(cls, value):
+        value = value.strip()
+        if len(value) < 2:
+            raise ValueError("Enter a valid full name.")
+        return value
+
+    @field_validator("email")
+    @classmethod
+    def clean_email(cls, value):
+        return value.strip().lower()
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_length(cls, value):
+        if len(value.encode("utf-8")) > 72:
+            raise ValueError("Password must not exceed 72 UTF-8 bytes.")
+        return value
+
+
+class RegistrationOut(BaseModel):
+    message: str
+    approval_status: str = "pending"
+
+
+class ApproveRegistration(BaseModel):
+    role: Role
 
 
 class TeamCreate(BaseModel):
@@ -30,9 +67,16 @@ class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     email: str = Field(pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
     full_name: str = ""
-    password: str = Field(min_length=6)
+    password: str = Field(min_length=6, max_length=72)
     role: Role = "analyst"
     team_id: Optional[int] = None
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_bytes(cls, value):
+        if len(value.encode("utf-8")) > 72:
+            raise ValueError("Password must not exceed 72 UTF-8 bytes.")
+        return value
 
 
 class UserUpdate(BaseModel):
@@ -40,7 +84,14 @@ class UserUpdate(BaseModel):
     role: Optional[Role] = None
     team_id: Optional[int] = None
     is_active: Optional[bool] = None
-    password: Optional[str] = Field(default=None, min_length=6)
+    password: Optional[str] = Field(default=None, min_length=6, max_length=72)
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_bytes(cls, value):
+        if value is not None and len(value.encode("utf-8")) > 72:
+            raise ValueError("Password must not exceed 72 UTF-8 bytes.")
+        return value
 
 
 class UserOut(BaseModel):
@@ -53,6 +104,8 @@ class UserOut(BaseModel):
     team_id: Optional[int]
     is_active: bool
     created_at: datetime
+    requested_role: Optional[str] = None
+    approval_status: str = "approved"
 
 
 class TokenOut(BaseModel):

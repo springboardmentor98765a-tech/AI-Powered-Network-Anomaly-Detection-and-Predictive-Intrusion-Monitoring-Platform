@@ -22,8 +22,12 @@ from app.config import settings
 from app.database import get_db, utcnow
 
 bearer = HTTPBearer(auto_error=False)
-ROLE_LEVEL = {"viewer": 1, "analyst": 2, "admin": 3}
-
+ROLE_LEVEL = {
+    "viewer": 1,
+    "analyst": 2,
+    "team_lead": 2,
+    "admin": 3,
+}
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
@@ -82,4 +86,28 @@ def rate_limit_login(request: Request) -> None:
         window.popleft()
     if len(window) >= 10:
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Too many login attempts, wait a minute")
+
+
+def record_failed_login(request: Request) -> None:
+    """Record rejected credentials after verification, not successful sign-ins."""
+    ip = request.client.host if request.client else "unknown"
+    _login_attempts[ip].append(time.time())
+
+_registration_attempts: dict[str, deque] = defaultdict(deque)
+
+
+def rate_limit_registration(request: Request) -> None:
+    ip = request.client.host if request.client else "unknown"
+    now = time.time()
+    window = _registration_attempts[ip]
+
+    while window and now - window[0] > 60:
+        window.popleft()
+
+    if len(window) >= 5:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Too many registration attempts. Wait one minute.",
+        )
+
     window.append(now)

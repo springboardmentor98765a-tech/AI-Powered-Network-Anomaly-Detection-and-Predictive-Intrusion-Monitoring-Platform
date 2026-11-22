@@ -10,14 +10,15 @@
   },
   "dependencies": {
     "chart.js": "4.4.6",
-    "next": "14.2.15",
+    "motion": "^14.14.0",
+    "next": "^16.4.6",
     "react": "18.3.1",
     "react-chartjs-2": "5.2.0",
     "react-dom": "18.3.1"
   },
   "devDependencies": {
     "autoprefixer": "10.4.20",
-    "postcss": "8.4.47",
+    "postcss": "^8.5.33",
     "tailwindcss": "3.4.14"
   }
 }

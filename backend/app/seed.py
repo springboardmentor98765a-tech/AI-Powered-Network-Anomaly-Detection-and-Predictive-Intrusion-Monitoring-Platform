@@ -2,6 +2,7 @@
 # Developed by Krish | SKK Projects
 from app import models
 from app.auth import hash_password
+from app.config import settings
 from app.database import SessionLocal
 
 DEMO_USERS = [
@@ -12,6 +13,8 @@ DEMO_USERS = [
 
 
 def seed_users() -> None:
+    if not settings.DEMO_SEED_ENABLED:
+        return
     db = SessionLocal()
     try:
         if db.query(models.User).count() > 0:
