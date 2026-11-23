@@ -1,66 +1,18 @@
-
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import {
   Activity,
   LayoutDashboard,
   Users,
-  ShieldCheck,
-  UsersRound,
   FileSearch,
   UserCircle,
   LockKeyhole,
   LogOut,
   Network,
+  ShieldAlert,
 } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
-
-const navigation = [
-  {
-    label: " Security Overview",
-    path: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Network Monitoring",
-    path: "/network-monitoring",
-    icon: Network,
-    roles: [
-      "Administrator",
-      "Security Analyst",
-      "Team Lead / Supervisor",
-    ],
-  },
-  {
-    label: "User Management",
-    path: "/users",
-    icon: Users,
-    roles: ["Administrator"],
-  },
-  {
-    label: "Role Management",
-    path: "/roles",
-    icon: ShieldCheck,
-    roles: ["Administrator"],
-  },
-  {
-    label: "Team Management",
-    path: "/teams",
-    icon: UsersRound,
-    roles: [
-      "Administrator",
-      "Team Lead / Supervisor",
-      "Security Analyst",
-    ],
-  },
-  {
-    label: "Audit Logs",
-    path: "/audit-logs",
-    icon: FileSearch,
-    roles: ["Administrator"],
-  },
-];
 
 const accountNavigation = [
   {
@@ -75,15 +27,64 @@ const accountNavigation = [
   },
 ];
 
+const managementPaths = ["/users", "/roles", "/teams"];
+const networkRoles = [
+  "Administrator",
+  "Security Analyst",
+  "Team Lead / Supervisor",
+];
+
 export default function AppLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const userRoles = user?.roles || [];
+  const isAdministrator = userRoles.includes("Administrator");
+  const managementPath = isAdministrator ? "/users" : "/teams";
+  const isManagementRoute = managementPaths.includes(location.pathname);
+
+  // User, Role and Team pages are grouped under one sidebar destination.
+  // Audit Logs deliberately remains a separate workspace destination.
+  const navigation = [
+    {
+      label: "Security Overview",
+      path: "/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      label: "Network Monitoring",
+      path: "/network-monitoring",
+      icon: Network,
+      roles: networkRoles,
+    },
+    {
+      label: "Anomaly Detection",
+      path: "/anomaly-detection",
+      icon: ShieldAlert,
+      roles: networkRoles,
+    },
+    {
+      label: "User Management",
+      path: managementPath,
+      icon: Users,
+      roles: [
+        "Administrator",
+        "Security Analyst",
+        "Team Lead / Supervisor",
+      ],
+      management: true,
+    },
+    {
+      label: "Audit Logs",
+      path: "/audit-logs",
+      icon: FileSearch,
+      roles: ["Administrator"],
+    },
+  ];
 
   const visibleNavigation = navigation.filter((item) => {
     if (!item.roles) return true;
-
     return item.roles.some((role) => userRoles.includes(role));
   });
 
@@ -119,13 +120,16 @@ export default function AppLayout() {
           <nav className="navigation">
             {visibleNavigation.map((item) => {
               const Icon = item.icon;
+              const active = item.management
+                ? isManagementRoute
+                : undefined;
 
               return (
                 <NavLink
-                  key={item.path}
+                  key={item.management ? "management" : item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `nav-link ${isActive ? "active" : ""}`
+                    `nav-link ${(item.management ? active : isActive) ? "active" : ""}`
                   }
                 >
                   <Icon size={19} />

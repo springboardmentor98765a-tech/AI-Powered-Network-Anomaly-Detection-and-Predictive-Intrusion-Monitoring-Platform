@@ -1,0 +1,67 @@
+.management-shell {
+  width: 100%;
+  min-width: 0;
+}
+
+.management-tabs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 26px;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.management-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 0 17px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.management-tab:hover {
+  color: var(--text-primary);
+  background: var(--surface-light);
+}
+
+.management-tab.active {
+  color: var(--accent);
+  background: rgba(54, 217, 178, 0.1);
+  border-color: rgba(54, 217, 178, 0.2);
+}
+
+.management-tab svg {
+  flex-shrink: 0;
+}
+
+.management-content {
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  .management-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .management-tab {
+    gap: 6px;
+    padding: 0 8px;
+    font-size: 12px;
+  }
+}

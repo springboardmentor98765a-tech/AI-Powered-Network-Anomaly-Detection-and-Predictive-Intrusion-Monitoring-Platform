@@ -1,6 +1,6 @@
 import jwt
 from datetime import datetime, timezone
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import (
     HTTPBearer,
     HTTPAuthorizationCredentials
@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.models import AuthSession, User
+from app.models import AuditLog, AuthSession, User
 from app.core.security import decode_access_token
 
 
@@ -80,13 +80,35 @@ def require_roles(*allowed_roles: str):
     """
 
     def role_checker(
-        current_user: User = Depends(get_current_user)
+        request: Request,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
     ):
         user_roles = {
             role.role_name for role in current_user.roles
         }
 
         if not user_roles.intersection(allowed_roles):
+            # Persist authenticated role-based access denials so the
+            # anomaly-analysis module can identify repeated attempts.
+            client_ip = request.client.host if request.client else None
+            db.add(AuditLog(
+                actor_user_id=current_user.id,
+                action="ACCESS_DENIED",
+                target_type="API Endpoint",
+                target_id=request.url.path[:64],
+                status="FAILED",
+                details={
+                    "path": request.url.path,
+                    "method": request.method,
+                    "client_ip": client_ip,
+                    "required_roles": list(allowed_roles),
+                    "actor_roles": sorted(user_roles),
+                    "user_agent": request.headers.get("user-agent", "")[:300],
+                },
+            ))
+            db.commit()
+
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have permission to perform this action."

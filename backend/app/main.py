@@ -1,4 +1,4 @@
-﻿from fastapi import FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
@@ -9,6 +9,7 @@ from app.api.roles import router as roles_router
 from app.api.teams import router as teams_router
 from app.api.audit import router as audit_router
 from app.api.network import router as network_router
+from app.api.anomaly import router as anomaly_router
 
 
 app = FastAPI(
@@ -33,6 +34,7 @@ app.include_router(roles_router, prefix=API_PREFIX)
 app.include_router(teams_router, prefix=API_PREFIX)
 app.include_router(audit_router, prefix=API_PREFIX)
 app.include_router(network_router, prefix=API_PREFIX)
+app.include_router(anomaly_router, prefix=API_PREFIX)
 
 
 @app.get("/")

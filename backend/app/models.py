@@ -39,6 +39,10 @@ class User(Base):
             "status IN ('active', 'inactive')",
             name="check_user_status"
         ),
+        CheckConstraint(
+            "security_clearance_level BETWEEN 1 AND 4",
+            name="check_user_security_clearance_level"
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
@@ -47,6 +51,11 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="active")
+    # Data clearance is independent of application RBAC roles.
+    # 1=Public, 2=Internal, 3=Confidential, 4=Restricted.
+    security_clearance_level: Mapped[int] = mapped_column(
+        Integer, default=2, server_default="2", nullable=False
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now
     )

@@ -1,273 +1,380 @@
-# NetShield AI — Development Progress
+# NetShield AI
 
-## Project Overview
+**Network Anomaly Detection and Predictive Intrusion Monitoring Platform**
 
-NetShield AI is a network anomaly detection and predictive intrusion monitoring platform. The project is being developed in modules, starting with user and access management, followed by live network monitoring and subsequent anomaly detection, intrusion prediction, alert management, and analytics capabilities.
+NetShield AI is a network-security monitoring platform that combines authenticated security operations, live packet capture, traffic analysis, explainable anomaly assessment, and team-based investigation workflows. It is designed for security analysts, team leads, and administrators who need a shared view of network activity and access-control events.
 
-This README is maintained as a development progress log. It distinguishes implemented and tested functionality from work planned for later modules.
+The application is being developed incrementally. This README describes the functionality currently implemented and distinguishes it from capabilities that are not yet part of the application.
 
-## Project Modules and Current Status
+---
 
-| Module | Name | Status |
+## Current implementation status
+
+| Area | Current status | What is available |
 |---|---|---|
-| 1 | User Management Module | Core implementation completed |
-| 2 | Network Monitoring Module | Core implementation implemented; local integration testing completed, final demonstration checklist remains |
-| 3 | Anomaly Detection Module | Planned |
-| 4 | Intrusion Prediction Module | Planned |
-| 5 | Alert Management Module | Planned |
-| 6 | Analytics Dashboard Module | Initial dashboard UI exists; full threat analytics/reporting integration planned |
-| 7 | AI Detection Module | Planned |
+| User and access management | Implemented | Login, JWT authentication, role-based access, users, roles, teams, profiles, password changes, and audit logs |
+| Network monitoring | Implemented | TShark packet capture, PostgreSQL persistence, packet filtering, protocol statistics, traffic summaries, timelines, and host telemetry |
+| Anomaly detection | Implemented | Network behaviour analysis, suspicious-activity review, recurring-pattern analysis, and explainable risk classification |
+| Intrusion prediction | Not implemented yet | Predictive attack probability and intrusion forecasting |
+| Alert management | Not implemented as a standalone module | The anomaly workflow supports team-based suspicious-activity reports and review decisions; a complete alert centre and notification system are separate work |
+| Security analytics and reporting | Partially implemented | Security overview and monitoring visualizations are available; broader threat-intelligence reporting and analytics remain future work |
+| Machine-learning detection | Not integrated into the current detection workflow | The current anomaly assessment uses rules and historical baselines, not trained ML models |
+
+## Application navigation
+
+The authenticated workspace uses a compact sidebar:
+
+- **Security Overview** — `/dashboard`
+- **Network Monitoring** — `/network-monitoring`
+- **Anomaly Detection** — `/anomaly-detection`
+- **User Management** — groups the existing Users, Roles, and Teams pages under one navigation entry. The pages retain their individual routes and permissions.
+- **Audit Logs** — `/audit-logs`, intentionally kept as a separate navigation entry.
+
+The account area also provides **My Profile** and **Change Password**.
+
+### Management pages and access
+
+| Page | Route | Access |
+|---|---|---|
+| Users | `/users` | Administrator |
+| Roles | `/roles` | Administrator |
+| Teams | `/teams` | Administrator, Security Analyst, Team Lead / Supervisor |
+| Audit Logs | `/audit-logs` | Administrator |
+
+The management navigation groups the first three pages without replacing their page components or changing their URLs. Audit Logs remains separate.
 
 ---
 
-# Module 1: User Management Module
+## Implemented functionality
 
-**Status: Core implementation completed**
+## 1. User and access management
 
-The first module establishes authentication, authorization, team management, and activity tracking.
+### Authentication and account management
 
-### Authentication and Account Management
+- Login using the registered account credentials.
+- JWT-based authenticated API requests.
+- Logout and authenticated profile retrieval.
+- Profile information and password-change screens.
+- Password changes require current-password verification and follow the backend password-validation rules.
 
-- User login using username/email and password.
-- JWT-based authentication.
-- Logout with server-side session revocation.
-- Authenticated user profile retrieval.
-- Password changes with current-password verification.
-- Password validation and session revocation after password changes.
+### Role-based access control
 
-### Role-Based Access Control (RBAC)
+The application uses three roles:
 
-The platform has three roles:
+- **Administrator** — manages users and roles, oversees teams, and accesses audit logs.
+- **Security Analyst** — monitors network activity, investigates suspicious events, and submits reports to a team lead.
+- **Team Lead / Supervisor** — accesses team-scoped activity and reviews suspicious-activity reports for assigned teams.
 
-- **Administrator:** Administrative functionality and user management.
-- **Security Analyst:** Security workspace access based on assigned permissions.
-- **Team Lead / Supervisor:** Team leadership and team-related permissions.
+Access is checked in the frontend for navigation and protected routes, and enforced by backend authorization dependencies. Hiding a navigation item is not the only security control.
 
-Frontend navigation and protected routes use role information, while backend authorization is enforced through role dependencies.
+### User, role, and team management
 
-### User Management
+- Create, view, search, update, activate, and deactivate user accounts.
+- Assign roles to users.
+- Create and maintain teams.
+- Assign team leads and manage team membership.
+- Apply role-specific access to management operations.
 
-Administrator functionality includes:
+### Audit logging
 
-- Creating and viewing user accounts.
-- Searching by name, username, or email.
-- Filtering by account status.
-- Editing user information.
-- Assigning and updating roles.
-- Activating and deactivating accounts.
-
-Backend safeguards cover unauthorized role changes, self-deactivation, and removal of the last active administrator.
-
-### Team Management
-
-- Creating and updating teams.
-- Assigning team leads.
-- Adding and removing team members.
-- Viewing team details and membership information.
-
-### Audit Logging
-
-- Recording important platform activities, including authentication and account-management operations.
-- Viewing and filtering events by user, action, status, target type, and target ID.
-- Date-range filtering, event details, and pagination.
-
-### Module 1 Frontend
-
-- Role-aware dashboard and navigation.
-- Dedicated user, role, team, and audit-log interfaces.
-- Profile and change-password pages.
+- Records important authentication, administration, authorization, and security-review events.
+- Provides an administrator-facing audit-log view with event filtering and details.
+- Supports the anomaly workflow by supplying role-based and data-clearance denial events for analysis.
 
 ---
 
-# Module 2: Network Monitoring Module
+## 2. Network monitoring
 
-**Status: Core monitoring implementation completed; final end-to-end demonstration and repository submission checks remain.**
+Network Monitoring collects packet metadata from the selected local network interface, stores capture records, and provides traffic analysis in the frontend.
 
-The second module collects live network packet metadata, stores it in PostgreSQL, analyses traffic and protocols, and visualizes the results in the React application.
+### Packet collection
 
-### 1. Packet Collection
+- Uses **Wireshark/TShark** to discover interfaces and capture traffic.
+- Supports starting and stopping capture sessions.
+- Stores capture-session and packet metadata in PostgreSQL.
+- Captured metadata includes timestamps, source and destination IP addresses where available, protocol information, ports where available, packet length, protocol stack, and interface details.
+- Persists packets in batches rather than committing each packet individually.
 
-- Wireshark/TShark is used for live packet capture.
-- Network interfaces are discovered through TShark.
-- The selected interface is used to start and stop capture sessions.
-- Captured packet metadata includes timestamp, source and destination IP addresses (when present), protocol, source and destination ports (when present), packet length, protocol stack, and interface name.
-- Capture sessions and packet records are persisted in PostgreSQL.
-- Packet records are inserted in batches rather than committing every packet individually.
+### Traffic monitoring and analysis
 
-### 2. Traffic Monitoring
+The monitoring service provides:
 
-The network API provides:
+- Capture-session history and current capture status.
+- Packet and byte totals.
+- Unique source and destination IP counts.
+- Top source and destination endpoints by observed traffic.
+- Incoming, outgoing, and unknown traffic estimates based on available local-interface information.
+- Traffic timelines grouped into minute-level buckets.
+- Packet filtering by IP address, protocol, port, and time range.
+- Protocol packet and byte statistics.
 
-- Capture-session listing and current capture status.
-- Total packets and total bytes for a capture and selected time window.
-- Unique source IPs, destination IPs, and hosts.
-- Top source and destination IPs, ranked by traffic volume.
-- Incoming, outgoing, and unknown-direction traffic estimates, using the local interface IP addresses where possible.
-- Traffic activity grouped into one-minute timeline buckets.
-- Packet filtering by source IP, destination IP, protocol, port, and date range.
-- Supported analytics time windows: 15, 30, 60, and 120 minutes.
+Supported analytics windows include 15, 30, 60, and 120 minutes. Traffic direction is an estimate; packets without usable IP information may be categorized as unknown.
 
-Direction is an estimate. Packets without usable IP addresses (for example, ARP packets) may be classified as unknown.
+### Protocol analysis
 
-### 3. Protocol Analysis
+Protocol classification uses the packet metadata and protocol information available from TShark. Classifications include TCP, UDP, HTTP, HTTPS/TLS, DNS, ICMP/ICMPv6, ARP, and other or unknown traffic.
 
-The packet parser classifies protocols using TShark's protocol information and available ports. The implementation includes classifications for:
+This is metadata-oriented monitoring. It is not deep inspection of encrypted application payloads or HTTP request bodies.
 
-- TCP
-- UDP
-- HTTP
-- HTTPS/TLS
-- DNS
-- ICMP and ICMPv6
-- ARP
-- Other or unknown protocols
+### Frontend views
 
-Protocol analytics report packet counts, total bytes, and packet/byte percentages for each detected protocol in the selected time window. The classification reflects the protocol metadata available in the captured packets; it is not deep-packet inspection of encrypted application payloads.
+**Network Monitoring** (`/network-monitoring`) provides interface selection, capture controls, capture history, traffic metrics, protocol distribution, traffic timelines, top endpoint tables, packet exploration, and host resource telemetry.
 
-### 4. Traffic Visualization
-
-Two separate frontend pages are provided:
-
-**Network Monitoring** (`/network-monitoring`)
-
-- Network interface selection and live capture controls.
-- Capture-session selection.
-- Traffic summary metrics.
-- Protocol distribution.
-- Traffic timeline.
-- Incoming/outgoing/unknown traffic summary.
-- Top source and destination IP tables.
-- Packet explorer with IP, protocol, and port filters.
-- CPU, memory, and disk usage from the system-health API.
-
-**Security Overview** (`/dashboard`)
-
-- Overview of available network/capture metrics.
-- Traffic and protocol information where supplied by the monitoring APIs.
-- Host system-health information.
-- Security/attack categories are represented in the UI, but categories must not be interpreted as confirmed detections until the anomaly-detection and alert-management modules provide real detection/alert records.
-
-### 5. Backend API Endpoints
-
-The network router is mounted under `/api/v1/network`.
-
-| Endpoint | Purpose |
-|---|---|
-| `GET /interfaces` | Discover available capture interfaces |
-| `POST /captures/start` | Start a capture on an interface |
-| `POST /captures/{capture_id}/stop` | Stop an active capture |
-| `GET /captures/status` | Get current capture status and totals |
-| `GET /captures` | List capture sessions |
-| `GET /captures/{capture_id}/summary` | Traffic summary, top IPs, and direction estimates |
-| `GET /captures/{capture_id}/protocol-stats` | Protocol packet/byte statistics |
-| `GET /captures/{capture_id}/traffic-timeline` | Traffic grouped by minute |
-| `GET /captures/{capture_id}/packets` | Paginated packet search and filters |
-| `GET /system-health` | CPU, memory, disk, and host network I/O counters |
-
-The analytics endpoints accept `window_minutes` values of 15, 30, 60, or 120. The system-health endpoint uses `psutil` to report host resource metrics.
-
-### Module 2 Validation Performed
-
-The following local checks have been performed during development:
-
-- Python application modules compiled successfully using `python -m compileall app`.
-- Alembic reports a single migration head for the current database migration chain.
-- The network interfaces endpoint returned the available interfaces, including Wi-Fi.
-- Live TShark capture on the Wi-Fi interface completed and packet records were retrieved from PostgreSQL.
-- One recorded capture returned 14,098 stored packets.
-- Another recorded capture returned 2,642 packets and 291,631 bytes.
-- The traffic summary endpoint returned packet/byte totals, unique hosts, top IPs, and direction estimates.
-- Protocol statistics returned ARP, HTTPS, UDP, TCP, DNS, and ICMPv6 records for a stored capture.
-- The system-health endpoint returned CPU, memory, disk, and network-I/O metrics from the development machine.
-- The React/Vite production build completed successfully.
-
-These are local development checks, not a claim of production deployment or a completed 20-minute demonstration. A longer live capture should be performed during the final demonstration to populate multiple timeline buckets.
-
-### Module 2 Scope Boundaries
-
-Module 2 implements packet collection, traffic monitoring, protocol analysis, and traffic visualization. It does **not** yet implement a full attack-detection engine. Port-scan, traffic-flood, brute-force detection, persistent security-alert management, threat prediction, and ML-based attack classification are tracked under the subsequent anomaly-detection, intrusion-prediction, alert-management, and AI-detection work described in the project plan.
+**Security Overview** (`/dashboard`) summarizes capture activity and host health. Any detector categories shown as coverage information should not be interpreted as confirmed alerts unless backed by actual detection or alert records.
 
 ---
 
-# Planned Modules
+## 3. Anomaly detection
 
-## Module 3: Anomaly Detection Module
+Anomaly Detection analyses local packet-capture history and application audit events. It presents four sections within the Anomaly Detection page.
 
-Planned according to the project specification:
+### Network behaviour analysis
 
-- Network behaviour analysis.
-- Suspicious activity detection.
-- Pattern recognition.
-- Anomaly classification.
+- Groups observed packets into communication flows using source IP, destination IP, protocol, source port, and destination port.
+- Summarizes packet count, total bytes, average packet size, packets per second, and first/last observation times.
+- Displays protocol composition and high-volume source flows.
+- Allows the analyst to inspect flow records in a dedicated scrollable table area.
 
-## Module 4: Intrusion Prediction Module
+### Suspicious activity detection
 
-Planned:
+- Identifies newly observed IP addresses based on locally retained packet history.
+- Separates role-based authorization denials from data-clearance denials.
+- Shows evidence such as actor, client IP where available, endpoint/resource, required roles or clearance, and attempt counts.
+- Allows a Security Analyst to submit a suspicious-activity report to a team they belong to.
+- Allows the assigned Team Lead or an Administrator to record **Action Taken** or **Dismissed** decisions, with a review note.
+- Keeps report visibility scoped to the user's permitted teams.
 
-- Threat prediction.
-- Attack probability analysis.
-- Risk scoring.
-- Intrusion forecasting.
+A first-seen IP address is a review signal, not proof that the address is malicious. Authorization denials are security-relevant events, but do not by themselves prove data exfiltration.
 
-## Module 5: Alert Management Module
+### Pattern recognition
 
-Planned:
+- Identifies IP addresses recurring across multiple capture sessions or active days.
+- Groups repeated communication flows using source/destination IP, protocol, and ports.
+- Reports packet totals, byte totals, average packet size, average packets per session, capture-session count, and active-day count.
+- Separates recurrent patterns from provisional flows that have repeated only within one capture.
+- Uses a bounded historical lookback for recurring IP and flow analysis.
 
-- Real-time threat alerts.
-- Alert prioritization.
-- Incident management.
-- Security notifications.
+### Anomaly classification
 
-## Module 6: Analytics Dashboard Module
+- Combines explainable rule-based findings from network observations and security audit events.
+- Compares current per-source traffic rates with a historical traffic baseline.
+- Assigns each finding a risk score from 0 to 100, a severity band, a classification label, a plain-language assessment, and supporting evidence.
+- Sorts findings by risk so that higher-risk events appear first.
 
-Planned:
+The severity bands are:
 
-- Traffic analytics.
-- Threat intelligence reports.
-- Security metrics.
-- Attack trend monitoring.
+| Severity | Risk score |
+|---|---:|
+| Informational | 0–14 |
+| Low | 15–39 |
+| Medium | 40–64 |
+| High | 65–84 |
+| Critical | 85–100 |
 
-The Module 2 monitoring pages provide an initial UI foundation; full threat-intelligence reporting and attack-trend analytics depend on later modules.
+The traffic comparison uses a seven-day historical baseline. Recurring IP and flow analysis uses a 30-day lookback. The analysis observation window can be selected from the supported time ranges.
 
-## Module 7: AI Detection Module
+### Detection limitations
 
-Planned:
-
-- Machine-learning model training.
-- Attack classification.
-- Behavioural analysis.
-- Prediction workflows.
+- A newly observed IP is not automatically malicious.
+- A traffic increase is a heuristic deviation and is not, on its own, proof of a DDoS attack.
+- Role-based and data-clearance denials indicate authorization events; they are not proof of data exfiltration.
+- The packet schema currently stores packet metadata, not HTTP payloads or application request bodies.
+- The current classification workflow is explainable and rule/baseline-based. It does not represent a trained machine-learning classifier, and model accuracy metrics should not be inferred from its risk scores.
 
 ---
 
-# Technology Stack
+## Technology stack
 
-| Component | Technologies |
+| Layer | Technologies |
 |---|---|
 | Frontend | React, Vite, JavaScript, CSS |
 | Routing | React Router DOM |
-| HTTP client | Axios |
+| API client | Axios |
 | Icons | Lucide React |
 | Backend | Python, FastAPI |
 | Database | PostgreSQL |
 | ORM | SQLAlchemy |
-| Database migrations | Alembic |
+| Migrations | Alembic |
 | Authentication | JWT and password hashing |
-| Network capture | Wireshark / TShark |
+| Packet capture | Wireshark / TShark |
 | Host telemetry | psutil |
 | Version control | Git and GitHub |
 
-Datasets for later machine-learning work are kept separate from the live packet-capture workflow. Dataset preprocessing and model training are not part of the completed Module 2 implementation.
+---
+
+## Local development setup
+
+The following instructions describe a local Windows development setup. Use separate terminals for the backend and frontend.
+
+### Prerequisites
+
+- Python installed and available on `PATH`.
+- Node.js and npm.
+- PostgreSQL running locally.
+- Wireshark/TShark installed and available on `PATH` for live packet capture.
+- A PostgreSQL database created for the project (the default name is `netshield_db`).
+
+### 1. Configure the backend
+
+Open a terminal in the repository root:
+
+```powershell
+cd backend
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+Create `backend/.env` with the values for your local PostgreSQL installation:
+
+```dotenv
+APP_NAME=NetShield AI
+API_VERSION=v1
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=netshield_db
+DB_USER=postgres
+DB_PASSWORD=YOUR_POSTGRES_PASSWORD
+SECRET_KEY=REPLACE_WITH_A_LONG_RANDOM_SECRET
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
+
+Do not commit `.env` or real passwords/secrets. The backend settings read the individual `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD` variables.
+
+From the `backend` directory, apply the migrations present on your current branch and seed the required roles:
+
+```powershell
+alembic upgrade head
+python -m app.db.seed_roles
+python -m app.db.seed_admin
+```
+
+The administrator seed command prompts for the initial administrator's name, username, email, and password.
+
+Start the API:
+
+```powershell
+uvicorn app.main:app --reload
+```
+
+The backend runs at `http://127.0.0.1:8000`. The FastAPI interactive API documentation is available at `http://127.0.0.1:8000/docs`.
+
+### 2. Configure the frontend
+
+Open a second terminal in the repository root:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Vite serves the frontend at `http://localhost:5173` by default. The Axios client uses `http://127.0.0.1:8000/api/v1` as its default API base URL. To override it, create `frontend/.env.local` with:
+
+```dotenv
+VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
+```
+
+### 3. Start live packet capture
+
+Ensure TShark is installed and visible to the backend process. Open Network Monitoring, select the interface to monitor, and start a capture. Captured packet metadata is stored in PostgreSQL and can then be used by the monitoring and anomaly-analysis views.
+
+Depending on the Windows installation and selected interface, packet capture may require appropriate permissions. If no interfaces are listed, check the TShark installation and `PATH` before troubleshooting the frontend.
 
 ---
 
-# Development Progress Log
+## Main application routes
 
-| Milestone | Work recorded |
-|---|---|
-| Module 1 | Authentication, RBAC, user management, team management, audit logging, and account pages implemented. |
-| Module 2 — Backend | TShark interface discovery and live capture, PostgreSQL capture/packet persistence, traffic analytics, protocol statistics, packet filters, timeline, and system-health API implemented. |
-| Module 2 — Frontend | Network Monitoring page and Security Overview page integrated into the existing authenticated React application. |
-| Module 2 — Validation | Local capture/API checks, Python compilation, and Vite production build completed successfully. Final longer-duration demonstration and repository review remain. |
+| Route | Page | Access |
+|---|---|---|
+| `/login` | Login | Public |
+| `/dashboard` | Security Overview | Authenticated users |
+| `/network-monitoring` | Network Monitoring | Administrator, Security Analyst, Team Lead / Supervisor |
+| `/anomaly-detection` | Anomaly Detection | Administrator, Security Analyst, Team Lead / Supervisor |
+| `/users` | Users (inside User Management) | Administrator |
+| `/roles` | Roles (inside User Management) | Administrator |
+| `/teams` | Teams (inside User Management) | Administrator, Security Analyst, Team Lead / Supervisor |
+| `/audit-logs` | Audit Logs | Administrator |
+| `/profile` | My Profile | Authenticated users |
+| `/change-password` | Change Password | Authenticated users |
 
 ---
+
+## Validation checklist before release
+
+The project has been exercised locally during development. Before creating a release or pushing a new set of changes, run the checks against the current working tree rather than relying on earlier results.
+
+### Backend
+
+```powershell
+cd backend
+python -m compileall app
+alembic heads
+```
+
+Confirm that the database is reachable, migrations are current, and the API starts successfully.
+
+### Frontend
+
+```powershell
+cd frontend
+npm run build
+npm run lint
+```
+
+### End-to-end checks
+
+- Sign in with an Administrator, Security Analyst, and Team Lead / Supervisor account.
+- Confirm the correct navigation items and management tabs appear for each role.
+- Confirm Audit Logs remains a separate Administrator-only navigation item.
+- Start and stop a packet capture and verify that packets are persisted and displayed.
+- Check the four Anomaly Detection sections and their independent data panels.
+- Submit a suspicious-activity report as an Analyst and review it as the assigned Team Lead.
+- Verify both Action Taken and Dismissed decisions and confirm the audit events are recorded.
+
+A successful frontend build alone does not prove that the database, packet capture, role restrictions, or report workflow are functioning end to end.
+
+---
+
+## Scope not yet implemented
+
+The following are separate capabilities and should not be confused with the currently implemented packet-monitoring and rule-based anomaly-analysis workflows:
+
+- Predictive intrusion forecasting and attack-probability modelling.
+- A trained ML detection pipeline with dataset preprocessing, training, model evaluation, and model-performance reporting.
+- A complete centralized alert centre, configurable notifications, and automated response/blocking.
+- Full threat-intelligence enrichment and integrated security reporting.
+- Production deployment and operational hardening.
+
+---
+
+## Repository structure
+
+```text
+NetShield-AI/
+├── backend/
+│   ├── app/
+│   │   ├── api/          # FastAPI routers and authorization dependencies
+│   │   ├── core/         # Settings and security utilities
+│   │   ├── db/           # Database session and seed scripts
+│   │   ├── schemas/      # Request and response schemas
+│   │   ├── services/     # Packet capture and analysis services
+│   │   └── models.py    # Core database models
+│   ├── migrations/      # Alembic migrations
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── components/  # App layout and protected-route components
+│   │   ├── context/     # Authentication context
+│   │   ├── pages/       # Dashboard, monitoring, anomaly and management pages
+│   │   └── services/    # Axios API client
+│   └── package.json
+└── README.md
+```
+
+---
+
+## Development note
+
+Keep local environment files, passwords, database exports, packet captures containing sensitive information, and generated datasets out of Git. Review `git status` and the staged diff before committing.
