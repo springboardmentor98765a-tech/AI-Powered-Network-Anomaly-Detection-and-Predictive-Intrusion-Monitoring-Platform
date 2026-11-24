@@ -251,7 +251,7 @@ export default function UsersPage() {
               value={roleFilter || 'ALL'}
               onValueChange={(val) => setRoleFilter(val === 'ALL' ? '' : val)}
             >
-              <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+              <SelectTrigger className="h-8 text-xs bg-white border-slate-200 font-medium text-slate-700 shadow-2xs">
                 <SelectValue placeholder="All Roles" />
               </SelectTrigger>
               <SelectContent>
@@ -433,7 +433,7 @@ export default function UsersPage() {
                   value={newUser.role}
                   onValueChange={(val) => setNewUser({ ...newUser, role: val })}
                 >
-                  <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+                  <SelectTrigger className="h-8 text-xs bg-white border-slate-200 font-medium text-slate-700 shadow-2xs">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -450,7 +450,7 @@ export default function UsersPage() {
                   value={newUser.team_id ? String(newUser.team_id) : 'NONE'}
                   onValueChange={(val) => setNewUser({ ...newUser, team_id: val === 'NONE' ? '' : val })}
                 >
-                  <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+                  <SelectTrigger className="h-8 text-xs bg-white border-slate-200 font-medium text-slate-700 shadow-2xs">
                     <SelectValue placeholder="No Team" />
                   </SelectTrigger>
                   <SelectContent>
@@ -520,7 +520,7 @@ export default function UsersPage() {
                   value={editFormData.role}
                   onValueChange={(val) => setEditFormData({ ...editFormData, role: val })}
                 >
-                  <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+                  <SelectTrigger className="h-8 text-xs bg-white border-slate-200 font-medium text-slate-700 shadow-2xs">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -537,7 +537,7 @@ export default function UsersPage() {
                   value={editFormData.team_id ? String(editFormData.team_id) : 'NONE'}
                   onValueChange={(val) => setEditFormData({ ...editFormData, team_id: val === 'NONE' ? '' : val })}
                 >
-                  <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+                  <SelectTrigger className="h-8 text-xs bg-white border-slate-200 font-medium text-slate-700 shadow-2xs">
                     <SelectValue placeholder="No Team" />
                   </SelectTrigger>
                   <SelectContent>

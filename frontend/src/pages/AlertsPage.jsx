@@ -300,7 +300,7 @@ export default function AlertsPage({ initialFilter, onNavigate }) {
             {/* Severity Filter */}
             <div className="w-36">
               <Select value={severityFilter} onValueChange={(val) => setSeverityFilter(val)}>
-                <SelectTrigger className="h-8 text-xs bg-white border-slate-200 text-slate-700 shadow-2xs">
+                <SelectTrigger className="h-8 text-xs bg-white border-slate-200 font-medium text-slate-700 shadow-2xs">
                   <SelectValue placeholder="All Severities" />
                 </SelectTrigger>
                 <SelectContent>
@@ -316,7 +316,7 @@ export default function AlertsPage({ initialFilter, onNavigate }) {
             {/* Action Filter */}
             <div className="w-32">
               <Select value={actionFilter} onValueChange={(val) => setActionFilter(val)}>
-                <SelectTrigger className="h-8 text-xs bg-white border-slate-200 text-slate-700 shadow-2xs">
+                <SelectTrigger className="h-8 text-xs bg-white border-slate-200 font-medium text-slate-700 shadow-2xs">
                   <SelectValue placeholder="All Actions" />
                 </SelectTrigger>
                 <SelectContent>
@@ -330,7 +330,7 @@ export default function AlertsPage({ initialFilter, onNavigate }) {
             {/* Attack Type Filter */}
             <div className="w-36">
               <Select value={attackTypeFilter} onValueChange={(val) => setAttackTypeFilter(val)}>
-                <SelectTrigger className="h-8 text-xs bg-white border-slate-200 text-slate-700 shadow-2xs">
+                <SelectTrigger className="h-8 text-xs bg-white border-slate-200 font-medium text-slate-700 shadow-2xs">
                   <SelectValue placeholder="All Attack Types" />
                 </SelectTrigger>
                 <SelectContent>

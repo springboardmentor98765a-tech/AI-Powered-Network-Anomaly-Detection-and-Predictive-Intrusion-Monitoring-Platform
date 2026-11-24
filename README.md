@@ -6,6 +6,15 @@ Network Anomaly Detection & Predictive Intrusion Monitoring Platform.
 
 ## Work Progress Log
 
+### 2026-11-24 — Module 3: Anomaly Detection Module
+- **Network Behavior Analysis (Tabular Format with Technical Terms)**: Quantitative statistical profiling table tracking Packet Inter-Arrival Time (IAT), SYN:ACK handshake asymmetry, Shannon byte entropy, flow jitter, TCP out-of-order ratios, DNS NXDomain ratios, and TLS handshake latency against baseline means and standard deviations with Z-scores and technical diagnoses.
+- **Suspicious Activity Detection & Analyst Escalation Workflow**:
+  - Automatically identifies new unrecognized IP addresses and unauthorized user clearance breaches attempting to access restricted datasets.
+  - **Analyst Workflow**: Security Analysts can inspect detected activities and escalate alerts directly to their Team Lead with a technical justification.
+  - **Team Lead Resolution**: Strict RBAC prevents analysts from resolving; Team Leads and Administrators can take enforcement actions (`BLOCKED_IP`, `QUARANTINED_HOST`, `REVOKED_ACCESS`, `RATE_LIMITED`) or dismiss alerts (`DISMISSED_AUTHORIZED`, `DISMISSED_FALSE_POSITIVE`) with resolution audit notes.
+- **Pattern Recognition**: Baselined catalog distinguishing regularly used IP addresses (verified gateways, identity providers, internal services) and regularly scheduled packet transfers (database syncs, backup replication, metric heartbeats).
+- **Anomaly Classification**: Automated classification distinguishing active dangerous attacks (e.g., C2 beacons, brute force, DNS exfiltration) from operational mistakes/misconfigurations (e.g., NTP time drift, expired TLS certs, database backup overruns) with risk level ratings (Critical, High, Medium, Low), root cause analyses, and actionable remediation steps.
+
 ### 2026-11-18 — Module 2: Network Monitoring & Protocol Analysis
 - **Packet Collection**: Ingests Wireshark `.pcap`/`.pcapng` packet captures with Scapy, plus on-demand high-fidelity synthetic packet generation.
 - **Traffic Monitoring**: Calculates total packets collected, total traffic volume (bytes/KB/MB/GB), active IP connections, and traffic direction (Inbound, Outbound, Internal).
@@ -55,6 +64,7 @@ npm run dev
 cd backend
 python test_module1.py    # Module 1 (19 tests)
 python test_module2.py    # Module 2 (10 tests)
+python test_module3.py    # Module 3 (10 tests)
 ```
 
 ---

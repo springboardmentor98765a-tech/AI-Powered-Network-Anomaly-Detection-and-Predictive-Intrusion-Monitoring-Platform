@@ -6,6 +6,7 @@ from app.models.team import Team
 from app.models.token_blocklist import TokenBlocklist
 from app.models.audit import AuditLog, AuditAction, AuditStatus
 from app.models.traffic import CaptureSession, PacketRecord
+from app.models.anomaly import SuspiciousActivity, NetworkBehaviorMetric, RecognizedPattern, AnomalyClassification
 
 def init_db():
     # Create all database tables
@@ -107,6 +108,10 @@ def init_db():
             print("[SUCCESS] Initial seed data created successfully.")
         else:
             print("[INFO] Database already initialized.")
+
+        # Ensure Module 3 Anomaly Detection initial data
+        from app.api.anomaly import ensure_initial_anomalies
+        ensure_initial_anomalies(db)
     finally:
         db.close()
 

@@ -169,7 +169,7 @@ export default function RegisterPage({ onSwitchToLogin }) {
                   value={formData.role}
                   onValueChange={(val) => setFormData((prev) => ({ ...prev, role: val }))}
                 >
-                  <SelectTrigger id="role" className="w-full h-8.5 bg-white border-slate-300 text-xs text-slate-900 shadow-xs">
+                  <SelectTrigger id="role" className="w-full h-8.5 bg-white border-slate-200 text-xs font-medium text-slate-700 shadow-2xs">
                     <div className="flex items-center gap-2 truncate">
                       <Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <SelectValue placeholder="Select platform role" />

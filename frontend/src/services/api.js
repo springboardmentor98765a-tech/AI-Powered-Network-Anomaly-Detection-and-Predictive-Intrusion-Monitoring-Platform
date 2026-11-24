@@ -205,4 +205,42 @@ export const api = {
     ).toString();
     return request(`/traffic/alerts${query ? `?${query}` : ''}`);
   },
+
+  // Anomaly Detection (Module 3)
+  getAnomalyOverview: () => request('/anomaly/overview'),
+
+  getNetworkBehavior: () => request('/anomaly/behavior'),
+
+  getSuspiciousActivities: (params = {}) => {
+    const query = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    ).toString();
+    return request(`/anomaly/suspicious${query ? `?${query}` : ''}`);
+  },
+
+  reportSuspiciousActivity: (activityId, analyst_notes) =>
+    request(`/anomaly/suspicious/${activityId}/report`, {
+      method: 'POST',
+      body: JSON.stringify({ analyst_notes }),
+    }),
+
+  resolveSuspiciousActivity: (activityId, action, resolution_notes = '') =>
+    request(`/anomaly/suspicious/${activityId}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify({ action, resolution_notes }),
+    }),
+
+  getRecognizedPatterns: (params = {}) => {
+    const query = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    ).toString();
+    return request(`/anomaly/patterns${query ? `?${query}` : ''}`);
+  },
+
+  getAnomalyClassifications: (params = {}) => {
+    const query = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    ).toString();
+    return request(`/anomaly/classifications${query ? `?${query}` : ''}`);
+  },
 };

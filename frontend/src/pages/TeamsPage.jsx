@@ -14,6 +14,13 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Plus,
   UserPlus,
   Trash2,
@@ -370,20 +377,24 @@ export default function TeamsPage() {
 
             <div className="space-y-1">
               <Label>Assign Team Lead</Label>
-              <select
-                value={newTeam.lead_id}
-                onChange={(e) => setNewTeam({ ...newTeam, lead_id: e.target.value })}
-                className="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-900 w-full h-8"
+              <Select
+                value={newTeam.lead_id ? String(newTeam.lead_id) : 'NONE'}
+                onValueChange={(val) => setNewTeam({ ...newTeam, lead_id: val === 'NONE' ? '' : val })}
               >
-                <option value="">No lead assigned</option>
-                {availableUsers
-                  .filter((u) => u.is_active && (u.role === 'Team Lead / Supervisor' || u.role === 'Administrator'))
-                  .map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.full_name} (@{u.username})
-                    </option>
-                  ))}
-              </select>
+                <SelectTrigger className="w-full h-8 bg-white border-slate-200 text-xs font-medium text-slate-700 shadow-2xs">
+                  <SelectValue placeholder="No lead assigned" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NONE">No lead assigned</SelectItem>
+                  {availableUsers
+                    .filter((u) => u.is_active && (u.role === 'Team Lead / Supervisor' || u.role === 'Administrator'))
+                    .map((u) => (
+                      <SelectItem key={u.id} value={String(u.id)}>
+                        {u.full_name} (@{u.username})
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <DialogFooter>
@@ -437,20 +448,24 @@ export default function TeamsPage() {
             {isAdmin && (
               <div className="space-y-1">
                 <Label>Lead</Label>
-                <select
-                  value={editTeam.lead_id}
-                  onChange={(e) => setEditTeam({ ...editTeam, lead_id: e.target.value })}
-                  className="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-900 w-full h-8"
+                <Select
+                  value={editTeam.lead_id ? String(editTeam.lead_id) : 'NONE'}
+                  onValueChange={(val) => setEditTeam({ ...editTeam, lead_id: val === 'NONE' ? '' : val })}
                 >
-                  <option value="">No lead assigned</option>
-                  {availableUsers
-                    .filter((u) => u.is_active && (u.role === 'Team Lead / Supervisor' || u.role === 'Administrator'))
-                    .map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.full_name} (@{u.username})
-                      </option>
-                    ))}
-                </select>
+                  <SelectTrigger className="w-full h-8 bg-white border-slate-200 text-xs font-medium text-slate-700 shadow-2xs">
+                    <SelectValue placeholder="No lead assigned" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NONE">No lead assigned</SelectItem>
+                    {availableUsers
+                      .filter((u) => u.is_active && (u.role === 'Team Lead / Supervisor' || u.role === 'Administrator'))
+                      .map((u) => (
+                        <SelectItem key={u.id} value={String(u.id)}>
+                          {u.full_name} (@{u.username})
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
@@ -484,21 +499,23 @@ export default function TeamsPage() {
           <form onSubmit={handleAddMemberSubmit} className="space-y-3">
             <div className="space-y-1">
               <Label>Select Active User</Label>
-              <select
-                required
-                value={selectedUserId}
-                onChange={(e) => setSelectedUserId(e.target.value)}
-                className="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-900 w-full h-8"
+              <Select
+                value={selectedUserId || ''}
+                onValueChange={(val) => setSelectedUserId(val)}
               >
-                <option value="">Choose an analyst or lead...</option>
-                {availableUsers
-                  .filter((u) => u.is_active && u.team_id !== selectedTeam?.id)
-                  .map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.full_name} (@{u.username}) {u.team_name ? `[Current: ${u.team_name}]` : '[Unassigned]'}
-                    </option>
-                  ))}
-              </select>
+                <SelectTrigger className="w-full h-8 bg-white border-slate-200 text-xs font-medium text-slate-700 shadow-2xs">
+                  <SelectValue placeholder="Choose an analyst or lead..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableUsers
+                    .filter((u) => u.is_active && u.team_id !== selectedTeam?.id)
+                    .map((u) => (
+                      <SelectItem key={u.id} value={String(u.id)}>
+                        {u.full_name} (@{u.username}) {u.team_name ? `[Current: ${u.team_name}]` : '[Unassigned]'}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <DialogFooter>

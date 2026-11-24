@@ -162,7 +162,7 @@ export default function AuditLogsPage() {
               value={actionFilter || 'ALL'}
               onValueChange={(val) => setActionFilter(val === 'ALL' ? '' : val)}
             >
-              <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+              <SelectTrigger className="h-8 text-xs bg-white border-slate-200 font-medium text-slate-700 shadow-2xs">
                 <SelectValue placeholder="All Actions" />
               </SelectTrigger>
               <SelectContent>
@@ -189,7 +189,7 @@ export default function AuditLogsPage() {
               value={statusFilter || 'ALL'}
               onValueChange={(val) => setStatusFilter(val === 'ALL' ? '' : val)}
             >
-              <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+              <SelectTrigger className="h-8 text-xs bg-white border-slate-200 font-medium text-slate-700 shadow-2xs">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -205,7 +205,7 @@ export default function AuditLogsPage() {
               value={targetTypeFilter || 'ALL'}
               onValueChange={(val) => setTargetTypeFilter(val === 'ALL' ? '' : val)}
             >
-              <SelectTrigger className="h-8 text-xs bg-white border-slate-300">
+              <SelectTrigger className="h-8 text-xs bg-white border-slate-200 font-medium text-slate-700 shadow-2xs">
                 <SelectValue placeholder="All Targets" />
               </SelectTrigger>
               <SelectContent>

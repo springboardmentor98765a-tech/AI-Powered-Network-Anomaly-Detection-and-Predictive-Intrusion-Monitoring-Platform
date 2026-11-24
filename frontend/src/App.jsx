@@ -5,6 +5,7 @@ import RegisterPage from '@/pages/RegisterPage';
 import DashboardPage from '@/pages/DashboardPage';
 import AlertsPage from '@/pages/AlertsPage';
 import TrafficMonitorPage from '@/pages/TrafficMonitorPage';
+import AnomalyDetectionPage from '@/pages/AnomalyDetectionPage';
 import UsersPage from '@/pages/UsersPage';
 import TeamsPage from '@/pages/TeamsPage';
 import AuditLogsPage from '@/pages/AuditLogsPage';
@@ -65,6 +66,8 @@ function AppContent() {
             onClearFilter={() => setTrafficFilter({})}
           />
         );
+      case 'anomaly':
+        return <AnomalyDetectionPage onNavigate={handleNavigate} />;
       case 'users':
         return <UsersPage />;
       case 'teams':

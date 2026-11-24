@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import {
   LayoutDashboard,
   Activity,
+  Radar,
   ShieldAlert,
   BarChart3,
   FileText,
@@ -28,6 +29,12 @@ export default function Sidebar({ currentPage, onNavigate }) {
       id: 'traffic',
       label: 'Network Monitoring',
       icon: Activity,
+      roles: ['Administrator', 'Team Lead / Supervisor', 'Security Analyst'],
+    },
+    {
+      id: 'anomaly',
+      label: 'Anomaly Detection',
+      icon: Radar,
       roles: ['Administrator', 'Team Lead / Supervisor', 'Security Analyst'],
     },
     {
