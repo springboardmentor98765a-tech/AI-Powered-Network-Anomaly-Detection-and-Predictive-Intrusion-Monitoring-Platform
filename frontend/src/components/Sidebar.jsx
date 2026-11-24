@@ -25,15 +25,15 @@ export default function Sidebar({ currentPage, onNavigate }) {
       roles: ['Administrator', 'Team Lead / Supervisor', 'Security Analyst'],
     },
     {
-      id: 'alerts',
-      label: 'Alerts',
-      icon: ShieldAlert,
+      id: 'traffic',
+      label: 'Network Monitoring',
+      icon: Activity,
       roles: ['Administrator', 'Team Lead / Supervisor', 'Security Analyst'],
     },
     {
-      id: 'traffic',
-      label: 'Traffic Monitor',
-      icon: Activity,
+      id: 'alerts',
+      label: 'Alerts',
+      icon: ShieldAlert,
       roles: ['Administrator', 'Team Lead / Supervisor', 'Security Analyst'],
     },
     {

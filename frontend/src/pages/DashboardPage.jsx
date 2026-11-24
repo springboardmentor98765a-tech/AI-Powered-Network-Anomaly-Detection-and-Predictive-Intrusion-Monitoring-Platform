@@ -103,7 +103,7 @@ export default function DashboardPage({ onNavigate }) {
     if (kpiId === 'total_alerts') return 'Click to view all security alerts';
     if (kpiId === 'critical_alerts') return 'Click to filter critical alerts';
     if (kpiId === 'blocked_attacks') return 'Click to filter blocked attacks';
-    return 'Click to open network traffic monitor';
+    return 'Click to open network monitoring';
   };
 
   return (

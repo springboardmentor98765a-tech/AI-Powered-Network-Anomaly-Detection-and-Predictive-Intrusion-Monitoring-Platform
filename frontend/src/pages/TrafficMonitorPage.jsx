@@ -45,6 +45,7 @@ import {
   X,
   Info,
   ExternalLink,
+  BarChart3,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -80,8 +81,17 @@ const TALKER_COLORS = [
   '#0ea5e9', '#0d9488', '#14b8a6', '#64748b', '#94a3b8'
 ];
 
+const formatBytes = (bytes) => {
+  if (!bytes || bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+};
+
 export default function TrafficMonitorPage({ initialFilter, onClearFilter }) {
-  const [activeSubTab, setActiveSubTab] = useState('talkers'); // 'talkers' | 'protocols' | 'records'
+  // Module 2 Four Sub-Tabs: 'collection' | 'monitoring' | 'protocols' | 'visualization'
+  const [activeSubTab, setActiveSubTab] = useState(initialFilter?.tab || 'collection');
   const [overview, setOverview] = useState(null);
   const [protocolsData, setProtocolsData] = useState(null);
   const [packets, setPackets] = useState([]);
@@ -101,8 +111,10 @@ export default function TrafficMonitorPage({ initialFilter, onClearFilter }) {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    if (initialFilter?.src_ip || initialFilter?.dst_ip) {
-      setActiveSubTab('records');
+    if (initialFilter?.tab) {
+      setActiveSubTab(initialFilter.tab);
+    } else if (initialFilter?.src_ip || initialFilter?.dst_ip) {
+      setActiveSubTab('collection');
     }
   }, [initialFilter]);
 
@@ -261,7 +273,7 @@ export default function TrafficMonitorPage({ initialFilter, onClearFilter }) {
       id: 'peak_throughput',
       title: 'Peak Bandwidth',
       value: '85.3 kbit/s',
-      change: `${overview?.direction_stats?.INBOUND || 0} In / ${overview?.direction_stats?.OUTBOUND || 0} Out`,
+      change: `${overview?.direction_stats?.inbound_packets || 0} In / ${overview?.direction_stats?.outbound_packets || 0} Out`,
       subtext: 'inbound vs outbound',
       color: '#d97706',
       sparkline: (throughputData && throughputData.length > 0)
@@ -332,10 +344,10 @@ export default function TrafficMonitorPage({ initialFilter, onClearFilter }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
           <h1 className="text-lg font-semibold tracking-tight text-slate-900">
-            Traffic Monitor
+            Network Monitoring
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Live packet collection, directional flow analysis, and protocol telemetry
+            Packet collection, real-time traffic monitoring, protocol analysis, and flow visualization
           </p>
         </div>
 
@@ -371,137 +383,498 @@ export default function TrafficMonitorPage({ initialFilter, onClearFilter }) {
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${refreshing ? 'animate-spin text-blue-600' : 'text-slate-500'}`} />
             <span>Refresh</span>
           </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setShowUploadModal(true)}
-            className="h-8 text-xs bg-white border-slate-200 shadow-2xs"
-          >
-            <Upload className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
-            <span>Upload PCAP</span>
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleGenerateSample}
-            className="h-8 text-xs bg-white border-slate-200 shadow-2xs"
-          >
-            <Database className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
-            <span>Sample Data</span>
-          </Button>
-
-          <Button
-            type="button"
-            variant={liveStream ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setLiveStream(!liveStream)}
-            className={`h-8 text-xs shadow-2xs ${liveStream ? 'bg-slate-900 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
-            title="Toggle live packet capture polling (5s interval)"
-          >
-            <span className={`w-2 h-2 rounded-full mr-1.5 ${liveStream ? 'bg-emerald-400' : 'bg-slate-400'}`} />
-            <span>{liveStream ? 'Live: ON' : 'Live: OFF'}</span>
-          </Button>
         </div>
       </div>
 
-      {/* Row 1: KPI Metric Cards with Sparklines (Exact same layout & styling as Dashboard) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {trafficKpis.map((kpi) => (
-          <div
-            key={kpi.id}
-            className="p-4 rounded-xl border border-slate-200 bg-white flex flex-col justify-between shadow-xs relative overflow-hidden"
-          >
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-xs font-medium block text-slate-500">
-                  {kpi.title}
-                </span>
-                <span className="text-2xl font-bold tracking-tight text-slate-900 font-sans mt-0.5 block">
-                  {kpi.value}
-                </span>
-              </div>
-              <div className="text-right flex flex-col items-end">
-                <span className="text-xs font-semibold flex items-center gap-0.5 text-emerald-600">
-                  <span>↑</span> {kpi.change}
-                </span>
-                <span className="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">
-                  {kpi.subtext}
-                </span>
-              </div>
+      {/* Module 2 Four Sub-Navigation Tabs */}
+      <div className="flex items-center gap-6 border-b border-slate-200 text-xs font-semibold overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('collection')}
+          className={`pb-2.5 pt-1 border-b-2 transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+            activeSubTab === 'collection'
+              ? 'border-blue-600 text-blue-600 font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Database className="w-3.5 h-3.5" />
+          <span>Packet Collection</span>
+          {totalPacketsCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 text-[10px]">
+              {totalPacketsCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('monitoring')}
+          className={`pb-2.5 pt-1 border-b-2 transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+            activeSubTab === 'monitoring'
+              ? 'border-blue-600 text-blue-600 font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Activity className="w-3.5 h-3.5" />
+          <span>Traffic Monitoring</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('protocols')}
+          className={`pb-2.5 pt-1 border-b-2 transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+            activeSubTab === 'protocols'
+              ? 'border-blue-600 text-blue-600 font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5" />
+          <span>Protocol Analysis</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('visualization')}
+          className={`pb-2.5 pt-1 border-b-2 transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+            activeSubTab === 'visualization'
+              ? 'border-blue-600 text-blue-600 font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <BarChart3 className="w-3.5 h-3.5" />
+          <span>Traffic Visualization</span>
+        </button>
+      </div>
+
+      {/* ======================================================== */}
+      {/* TAB 1: PACKET COLLECTION */}
+      {/* ======================================================== */}
+      {activeSubTab === 'collection' && (
+        <div className="space-y-4">
+          {/* Action Bar & Controls */}
+          <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                <Database className="w-4 h-4 text-blue-600" />
+                <span>Packet Capture & Ingestion Engine</span>
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Ingest raw PCAP/PCAPNG capture files, stream live socket frames, or generate synthetic packet traffic
+              </p>
             </div>
 
-            {/* Sparkline Line Graph: Full Card Width */}
-            <div className="h-10 w-full mt-3 -mx-0.5">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={kpi.sparkline} margin={{ top: 2, right: 1, left: 1, bottom: 2 }}>
-                  <Line
-                    type="monotone"
-                    dataKey="val"
-                    stroke={kpi.color}
-                    strokeWidth={2}
-                    dot={false}
-                    isAnimationActive={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowUploadModal(true)}
+                className="h-8 text-xs bg-white border-slate-200 shadow-2xs"
+              >
+                <Upload className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
+                <span>Upload PCAP</span>
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleGenerateSample}
+                className="h-8 text-xs bg-white border-slate-200 shadow-2xs"
+              >
+                <Database className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
+                <span>Sample Data</span>
+              </Button>
+
+              <Button
+                type="button"
+                variant={liveStream ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setLiveStream(!liveStream)}
+                className={`h-8 text-xs shadow-2xs ${liveStream ? 'bg-slate-900 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                title="Toggle live packet capture polling (5s interval)"
+              >
+                <span className={`w-2 h-2 rounded-full mr-1.5 ${liveStream ? 'bg-emerald-400' : 'bg-slate-400'}`} />
+                <span>{liveStream ? 'Live: ON' : 'Live: OFF'}</span>
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleClearData}
+                className="h-8 text-xs text-slate-500 hover:text-rose-600 hover:bg-rose-50"
+                title="Flush captured packets"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Sub-Navigation Tabs */}
-      <div className="flex items-center justify-between border-b border-slate-200">
-        <div className="flex items-center gap-6 text-xs font-semibold">
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('talkers')}
-            className={`pb-2.5 pt-1 border-b-2 transition cursor-pointer ${
-              activeSubTab === 'talkers'
-                ? 'border-blue-600 text-blue-600 font-bold'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Talkers
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('protocols')}
-            className={`pb-2.5 pt-1 border-b-2 transition cursor-pointer ${
-              activeSubTab === 'protocols'
-                ? 'border-blue-600 text-blue-600 font-bold'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Protocols
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('records')}
-            className={`pb-2.5 pt-1 border-b-2 transition cursor-pointer flex items-center gap-1.5 ${
-              activeSubTab === 'records'
-                ? 'border-blue-600 text-blue-600 font-bold'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <span>Flow Records</span>
-            {totalPacketsCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 text-[10px]">
-                {totalPacketsCount}
+          {/* Quick Stats Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3 rounded-lg border border-slate-200 bg-white">
+              <span className="text-[11px] font-medium text-slate-500 block">Captured Frames</span>
+              <span className="text-lg font-bold text-slate-900 font-sans mt-0.5 block">{totalPacketsCount.toLocaleString()}</span>
+            </div>
+            <div className="p-3 rounded-lg border border-slate-200 bg-white">
+              <span className="text-[11px] font-medium text-slate-500 block">Buffer Volume</span>
+              <span className="text-lg font-bold text-slate-900 font-sans mt-0.5 block">{overview?.formatted_bytes || '0 B'}</span>
+            </div>
+            <div className="p-3 rounded-lg border border-slate-200 bg-white">
+              <span className="text-[11px] font-medium text-slate-500 block">Capture Source</span>
+              <span className="text-xs font-semibold text-blue-600 mt-1 block truncate">
+                {liveStream ? 'Live Socket Stream (5s)' : 'File / Ingested Buffer'}
               </span>
-            )}
-          </button>
+            </div>
+            <div className="p-3 rounded-lg border border-slate-200 bg-white">
+              <span className="text-[11px] font-medium text-slate-500 block">Parser Engine</span>
+              <span className="text-xs font-semibold text-slate-700 mt-1 block truncate">Scapy v2.5 / Deep DPI</span>
+            </div>
+          </div>
+
+          {/* Flow Records Table */}
+          <Card className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+            <div className="pb-3 border-b border-slate-100 mb-3">
+              <h2 className="text-sm font-semibold text-slate-900">
+                Flow Records
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Captured network packets and protocol headers (click row to inspect payload)
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-slate-200 text-xs">
+                    <TableHead>Time</TableHead>
+                    <TableHead>Protocol</TableHead>
+                    <TableHead>Source IP : Port</TableHead>
+                    <TableHead>Destination IP : Port</TableHead>
+                    <TableHead>Length</TableHead>
+                    <TableHead>Direction</TableHead>
+                    <TableHead>TCP Flags</TableHead>
+                    <TableHead>Info / Payload</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {packets.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8 text-xs text-slate-400">
+                        No flow records found for the selected time window.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    packets.map((pkt) => (
+                      <TableRow
+                        key={pkt.id}
+                        onClick={() => setSelectedPacket(pkt)}
+                        className="hover:bg-slate-50 cursor-pointer font-mono text-xs transition"
+                      >
+                        <TableCell className="text-slate-500 text-[11px]">
+                          {new Date(pkt.timestamp).toLocaleTimeString()}
+                        </TableCell>
+                        <TableCell className="font-sans">
+                          {getProtocolBadge(pkt.protocol)}
+                        </TableCell>
+                        <TableCell className="text-slate-800">
+                          {pkt.src_ip}{pkt.src_port ? `:${pkt.src_port}` : ''}
+                        </TableCell>
+                        <TableCell className="text-slate-800">
+                          {pkt.dst_ip}{pkt.dst_port ? `:${pkt.dst_port}` : ''}
+                        </TableCell>
+                        <TableCell className="text-slate-600 font-sans">
+                          {pkt.packet_length} B
+                        </TableCell>
+                        <TableCell className="font-sans">
+                          {getDirectionBadge(pkt.direction)}
+                        </TableCell>
+                        <TableCell className="text-slate-500 text-[11px]">
+                          {pkt.flags || '-'}
+                        </TableCell>
+                        <TableCell className="text-slate-500 max-w-xs truncate text-[11px]" title={pkt.info}>
+                          {pkt.info || '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
         </div>
-      </div>
+      )}
 
       {/* ======================================================== */}
-      {/* TAB 1: TALKERS */}
+      {/* TAB 2: TRAFFIC MONITORING */}
       {/* ======================================================== */}
-      {activeSubTab === 'talkers' && (
+      {activeSubTab === 'monitoring' && (
         <div className="space-y-5">
+          {/* Section Header */}
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Real-Time Traffic Telemetry
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Aggregated network volume, active sessions, and directional transmission telemetry
+            </p>
+          </div>
+
+          {/* Row 1: KPI Metric Cards with Sparklines */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {trafficKpis.map((kpi) => (
+              <div
+                key={kpi.id}
+                className="p-4 rounded-xl border border-slate-200 bg-white flex flex-col justify-between shadow-xs relative overflow-hidden"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="text-xs font-medium block text-slate-500">
+                      {kpi.title}
+                    </span>
+                    <span className="text-2xl font-bold tracking-tight text-slate-900 font-sans mt-0.5 block">
+                      {kpi.value}
+                    </span>
+                  </div>
+                  <div className="text-right flex flex-col items-end">
+                    <span className="text-xs font-semibold flex items-center gap-0.5 text-emerald-600">
+                      <span>↑</span> {kpi.change}
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">
+                      {kpi.subtext}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Sparkline Line Graph: Full Card Width */}
+                <div className="h-10 w-full mt-3 -mx-0.5">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={kpi.sparkline} margin={{ top: 2, right: 1, left: 1, bottom: 2 }}>
+                      <Line
+                        type="monotone"
+                        dataKey="val"
+                        stroke={kpi.color}
+                        strokeWidth={2}
+                        dot={false}
+                        isAnimationActive={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Row 2: Directional Flow Breakdown */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+            {/* Inbound Card */}
+            <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
+                  <ArrowDownRight className="w-4 h-4 text-emerald-600" />
+                  <span>Inbound Traffic</span>
+                </span>
+                <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">
+                  Ingress
+                </Badge>
+              </div>
+              <div className="mt-3 space-y-2">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-2xl font-bold tracking-tight text-slate-900 font-sans">
+                    {(overview?.direction_stats?.inbound_packets || 0).toLocaleString()}
+                  </span>
+                  <span className="text-xs text-slate-500 font-mono">
+                    {formatBytes(overview?.direction_stats?.inbound_bytes || 0)}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full"
+                    style={{
+                      width: `${overview?.total_packets ? Math.round(((overview.direction_stats?.inbound_packets || 0) / overview.total_packets) * 100) : 0}%`,
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-slate-500">
+                  <span>Share of Total Traffic</span>
+                  <span className="font-semibold text-slate-700">
+                    {overview?.total_packets ? Math.round(((overview.direction_stats?.inbound_packets || 0) / overview.total_packets) * 100) : 0}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Outbound Card */}
+            <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
+                  <ArrowUpRight className="w-4 h-4 text-blue-600" />
+                  <span>Outbound Traffic</span>
+                </span>
+                <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200">
+                  Egress
+                </Badge>
+              </div>
+              <div className="mt-3 space-y-2">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-2xl font-bold tracking-tight text-slate-900 font-sans">
+                    {(overview?.direction_stats?.outbound_packets || 0).toLocaleString()}
+                  </span>
+                  <span className="text-xs text-slate-500 font-mono">
+                    {formatBytes(overview?.direction_stats?.outbound_bytes || 0)}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="h-full bg-blue-600 rounded-full"
+                    style={{
+                      width: `${overview?.total_packets ? Math.round(((overview.direction_stats?.outbound_packets || 0) / overview.total_packets) * 100) : 0}%`,
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-slate-500">
+                  <span>Share of Total Traffic</span>
+                  <span className="font-semibold text-slate-700">
+                    {overview?.total_packets ? Math.round(((overview.direction_stats?.outbound_packets || 0) / overview.total_packets) * 100) : 0}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Internal Card */}
+            <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
+                  <ArrowRightLeft className="w-4 h-4 text-slate-600" />
+                  <span>Internal Traffic</span>
+                </span>
+                <Badge variant="outline" className="text-[10px] bg-slate-100 text-slate-700 border-slate-200">
+                  Lateral LAN
+                </Badge>
+              </div>
+              <div className="mt-3 space-y-2">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-2xl font-bold tracking-tight text-slate-900 font-sans">
+                    {(overview?.direction_stats?.internal_packets || 0).toLocaleString()}
+                  </span>
+                  <span className="text-xs text-slate-500 font-mono">
+                    {formatBytes(overview?.direction_stats?.internal_bytes || 0)}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="h-full bg-slate-500 rounded-full"
+                    style={{
+                      width: `${overview?.total_packets ? Math.round(((overview.direction_stats?.internal_packets || 0) / overview.total_packets) * 100) : 0}%`,
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-slate-500">
+                  <span>Share of Total Traffic</span>
+                  <span className="font-semibold text-slate-700">
+                    {overview?.total_packets ? Math.round(((overview.direction_stats?.internal_packets || 0) / overview.total_packets) * 100) : 0}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* TAB 3: PROTOCOL ANALYSIS */}
+      {/* ======================================================== */}
+      {activeSubTab === 'protocols' && (
+        <Card className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2 mb-4">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-900">
+                Protocol Analysis
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Distribution of network traffic across transport and application layer protocols
+              </p>
+            </div>
+            {protocolsData && (
+              <Badge variant="outline" className="font-mono text-xs self-start sm:self-auto bg-slate-50 border-slate-200 text-slate-700">
+                TCP : UDP Ratio = {protocolsData.tcp_vs_udp_ratio}
+              </Badge>
+            )}
+          </div>
+
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-slate-200">
+                  <TableHead>Protocol</TableHead>
+                  <TableHead>OSI Layer</TableHead>
+                  <TableHead>Packets</TableHead>
+                  <TableHead>Packet Share</TableHead>
+                  <TableHead>Traffic Volume</TableHead>
+                  <TableHead>Avg Packet Size</TableHead>
+                  <TableHead>Protocol Characteristics</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {protocolsData?.protocols?.map((p) => (
+                  <TableRow key={p.protocol} className="hover:bg-slate-50 transition">
+                    <TableCell className="font-medium">
+                      {getProtocolBadge(p.protocol)}
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-600 font-medium">
+                      {p.category}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-slate-900 font-semibold">
+                      {p.packet_count.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className="h-full bg-blue-600 rounded-full"
+                            style={{ width: `${Math.min(p.packet_percentage, 100)}%` }}
+                          />
+                        </div>
+                        <span className="font-mono text-[11px] text-slate-500">{p.packet_percentage}%</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-slate-700">
+                      {p.byte_volume >= 1024 * 1024
+                        ? `${(p.byte_volume / (1024 * 1024)).toFixed(2)} MB`
+                        : p.byte_volume >= 1024
+                        ? `${(p.byte_volume / 1024).toFixed(1)} KB`
+                        : `${p.byte_volume} B`}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-slate-500">
+                      {p.avg_packet_size} B
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-500 max-w-xs truncate" title={p.characteristics}>
+                      {p.characteristics}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+      )}
+
+      {/* ======================================================== */}
+      {/* TAB 4: TRAFFIC VISUALIZATION */}
+      {/* ======================================================== */}
+      {activeSubTab === 'visualization' && (
+        <div className="space-y-5">
+          {/* Section Header */}
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Traffic Visualization
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Interactive bandwidth throughput, volume share, and top talker analytics
+            </p>
+          </div>
+
           {/* Top Row: Visualizations (Donut + Stacked Throughput) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* Top Servers and Clients (Bytes) Donut */}
@@ -717,159 +1090,6 @@ export default function TrafficMonitorPage({ initialFilter, onClearFilter }) {
             </div>
           </div>
         </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* TAB 2: PROTOCOLS */}
-      {/* ======================================================== */}
-      {activeSubTab === 'protocols' && (
-        <Card className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2 mb-4">
-            <div>
-              <h2 className="text-sm font-semibold text-slate-900">
-                Protocol Analysis
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Distribution of network traffic across transport and application layer protocols
-              </p>
-            </div>
-            {protocolsData && (
-              <Badge variant="outline" className="font-mono text-xs self-start sm:self-auto bg-slate-50 border-slate-200 text-slate-700">
-                TCP : UDP Ratio = {protocolsData.tcp_vs_udp_ratio}
-              </Badge>
-            )}
-          </div>
-
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b border-slate-200">
-                  <TableHead>Protocol</TableHead>
-                  <TableHead>OSI Layer</TableHead>
-                  <TableHead>Packets</TableHead>
-                  <TableHead>Packet Share</TableHead>
-                  <TableHead>Traffic Volume</TableHead>
-                  <TableHead>Avg Packet Size</TableHead>
-                  <TableHead>Protocol Characteristics</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {protocolsData?.protocols?.map((p) => (
-                  <TableRow key={p.protocol} className="hover:bg-slate-50 transition">
-                    <TableCell className="font-medium">
-                      {getProtocolBadge(p.protocol)}
-                    </TableCell>
-                    <TableCell className="text-xs text-slate-600 font-medium">
-                      {p.category}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-slate-900 font-semibold">
-                      {p.packet_count.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                          <div
-                            className="h-full bg-blue-600 rounded-full"
-                            style={{ width: `${Math.min(p.packet_percentage, 100)}%` }}
-                          />
-                        </div>
-                        <span className="font-mono text-[11px] text-slate-500">{p.packet_percentage}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-slate-700">
-                      {p.byte_volume >= 1024 * 1024
-                        ? `${(p.byte_volume / (1024 * 1024)).toFixed(2)} MB`
-                        : p.byte_volume >= 1024
-                        ? `${(p.byte_volume / 1024).toFixed(1)} KB`
-                        : `${p.byte_volume} B`}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-slate-500">
-                      {p.avg_packet_size} B
-                    </TableCell>
-                    <TableCell className="text-xs text-slate-500 max-w-xs truncate" title={p.characteristics}>
-                      {p.characteristics}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </Card>
-      )}
-
-      {/* ======================================================== */}
-      {/* TAB 3: FLOW RECORDS */}
-      {/* ======================================================== */}
-      {activeSubTab === 'records' && (
-        <Card className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="pb-3 border-b border-slate-100 mb-3">
-            <h2 className="text-sm font-semibold text-slate-900">
-              Flow Records
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Captured network packets and protocol headers
-            </p>
-          </div>
-
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b border-slate-200 text-xs">
-                  <TableHead>Time</TableHead>
-                  <TableHead>Protocol</TableHead>
-                  <TableHead>Source IP : Port</TableHead>
-                  <TableHead>Destination IP : Port</TableHead>
-                  <TableHead>Length</TableHead>
-                  <TableHead>Direction</TableHead>
-                  <TableHead>TCP Flags</TableHead>
-                  <TableHead>Info / Payload</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {packets.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-xs text-slate-400">
-                      No flow records found for the selected time window.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  packets.map((pkt) => (
-                    <TableRow
-                      key={pkt.id}
-                      onClick={() => setSelectedPacket(pkt)}
-                      className="hover:bg-slate-50 cursor-pointer font-mono text-xs transition"
-                    >
-                      <TableCell className="text-slate-500 text-[11px]">
-                        {new Date(pkt.timestamp).toLocaleTimeString()}
-                      </TableCell>
-                      <TableCell className="font-sans">
-                        {getProtocolBadge(pkt.protocol)}
-                      </TableCell>
-                      <TableCell className="text-slate-800">
-                        {pkt.src_ip}{pkt.src_port ? `:${pkt.src_port}` : ''}
-                      </TableCell>
-                      <TableCell className="text-slate-800">
-                        {pkt.dst_ip}{pkt.dst_port ? `:${pkt.dst_port}` : ''}
-                      </TableCell>
-                      <TableCell className="text-slate-600 font-sans">
-                        {pkt.packet_length} B
-                      </TableCell>
-                      <TableCell className="font-sans">
-                        {getDirectionBadge(pkt.direction)}
-                      </TableCell>
-                      <TableCell className="text-slate-500 text-[11px]">
-                        {pkt.flags || '-'}
-                      </TableCell>
-                      <TableCell className="text-slate-500 max-w-xs truncate text-[11px]" title={pkt.info}>
-                        {pkt.info || '-'}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </Card>
       )}
 
       {/* Packet Dissection Modal */}

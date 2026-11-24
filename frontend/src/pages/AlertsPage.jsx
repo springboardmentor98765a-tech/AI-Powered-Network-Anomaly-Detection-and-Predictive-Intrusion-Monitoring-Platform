@@ -517,7 +517,7 @@ export default function AlertsPage({ initialFilter, onNavigate }) {
                   }
                 }}
               >
-                Inspect in Traffic Monitor
+                Inspect in Network Monitoring
               </Button>
               <Button type="button" size="sm" onClick={() => setSelectedAlert(null)}>
                 Close
