@@ -31,6 +31,18 @@ class SuspiciousActivityResponse(BaseModel):
 class ReportSuspiciousRequest(BaseModel):
     analyst_notes: str = Field(..., min_length=3, max_length=500)
 
+class CreateSuspiciousActivityRequest(BaseModel):
+    activity_type: str = Field(..., max_length=50) # NEW_UNRECOGNIZED_IP, CLEARANCE_VIOLATION
+    source_ip: str = Field(..., min_length=3, max_length=45)
+    destination_ip: str = Field("10.0.0.1", max_length=45)
+    user_identity: str = Field("unauthenticated_client", max_length=100)
+    attempted_resource: str = Field(..., min_length=2, max_length=200)
+    required_clearance: str = Field("Standard Clearance (Tier 1)", max_length=100)
+    actual_clearance: str = Field("Unassigned (Tier 0)", max_length=100)
+    severity: str = Field("Medium", max_length=20) # Critical, High, Medium, Low
+    description: str = Field(..., min_length=5, max_length=500)
+    analyst_notes: str | None = Field(None, max_length=500)
+
 class ResolveSuspiciousRequest(BaseModel):
     action: str = Field(..., min_length=3, max_length=50) # BLOCKED_IP, QUARANTINED_HOST, REVOKED_TOKEN, DISMISSED_FALSE_POSITIVE, DISMISSED_AUTHORIZED
     resolution_notes: str | None = Field(None, max_length=500)

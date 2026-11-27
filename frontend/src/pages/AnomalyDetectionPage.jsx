@@ -4,6 +4,8 @@ import { api } from '@/services/api';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Table,
   TableHeader,
@@ -53,6 +55,7 @@ import {
   X,
   Radar,
   HelpCircle,
+  Plus,
 } from 'lucide-react';
 
 export default function AnomalyDetectionPage({ onNavigate }) {
@@ -86,6 +89,22 @@ export default function AnomalyDetectionPage({ onNavigate }) {
   const [resolveAction, setResolveAction] = useState('BLOCKED_IP');
   const [resolveNotes, setResolveNotes] = useState('');
   const [resolving, setResolving] = useState(false);
+
+  // Raise Modal (Analyst workflow)
+  const [showRaiseModal, setShowRaiseModal] = useState(false);
+  const [newActivity, setNewActivity] = useState({
+    activity_type: 'NEW_UNRECOGNIZED_IP',
+    source_ip: '',
+    destination_ip: '10.0.0.1',
+    user_identity: 'unauthenticated_client',
+    attempted_resource: '',
+    required_clearance: 'Standard Clearance (Tier 1)',
+    actual_clearance: 'Unassigned (Tier 0)',
+    severity: 'Medium',
+    description: '',
+    analyst_notes: '',
+  });
+  const [raising, setRaising] = useState(false);
 
   const loadData = async (isBackground = false) => {
     if (!isBackground) setLoading(true);
@@ -160,6 +179,39 @@ export default function AnomalyDetectionPage({ onNavigate }) {
       setError(err.message || 'Failed to resolve activity alert.');
     } finally {
       setResolving(false);
+    }
+  };
+
+  const handleRaiseSubmit = async (e) => {
+    e.preventDefault();
+    if (!newActivity.source_ip || !newActivity.attempted_resource || !newActivity.description) {
+      setError('Please provide Source IP, Attempted Resource, and Description.');
+      return;
+    }
+    setRaising(true);
+    setError('');
+    try {
+      await api.createSuspiciousActivity(newActivity);
+      setSuccessMsg(`Successfully raised suspicious activity for ${newActivity.source_ip} to Team Lead.`);
+      setShowRaiseModal(false);
+      setNewActivity({
+        activity_type: 'NEW_UNRECOGNIZED_IP',
+        source_ip: '',
+        destination_ip: '10.0.0.1',
+        user_identity: 'unauthenticated_client',
+        attempted_resource: '',
+        required_clearance: 'Standard Clearance (Tier 1)',
+        actual_clearance: 'Unassigned (Tier 0)',
+        severity: 'Medium',
+        description: '',
+        analyst_notes: '',
+      });
+      loadData(true);
+      setTimeout(() => setSuccessMsg(''), 4000);
+    } catch (err) {
+      setError(err.message || 'Failed to raise suspicious activity.');
+    } finally {
+      setRaising(false);
     }
   };
 
@@ -411,52 +463,66 @@ export default function AnomalyDetectionPage({ onNavigate }) {
               </p>
             </div>
 
-            {/* Status Filter Buttons */}
-            <div className="flex items-center gap-1.5 text-xs">
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Status Filter Buttons */}
+              <div className="flex items-center gap-1.5 text-xs">
+                <Button
+                  type="button"
+                  variant={suspiciousFilter === 'ALL' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSuspiciousFilter('ALL')}
+                  className={`h-7 text-xs ${suspiciousFilter === 'ALL' ? 'bg-slate-900 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                >
+                  All
+                </Button>
+                <Button
+                  type="button"
+                  variant={suspiciousFilter === 'DETECTED' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSuspiciousFilter('DETECTED')}
+                  className={`h-7 text-xs ${suspiciousFilter === 'DETECTED' ? 'bg-slate-900 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                >
+                  Detected
+                </Button>
+                <Button
+                  type="button"
+                  variant={suspiciousFilter === 'REPORTED_TO_LEAD' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSuspiciousFilter('REPORTED_TO_LEAD')}
+                  className={`h-7 text-xs ${suspiciousFilter === 'REPORTED_TO_LEAD' ? 'bg-slate-900 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                >
+                  Escalated to Lead
+                </Button>
+                <Button
+                  type="button"
+                  variant={suspiciousFilter === 'ACTION_TAKEN' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSuspiciousFilter('ACTION_TAKEN')}
+                  className={`h-7 text-xs ${suspiciousFilter === 'ACTION_TAKEN' ? 'bg-slate-900 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                >
+                  Action Taken
+                </Button>
+                <Button
+                  type="button"
+                  variant={suspiciousFilter === 'DISMISSED' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSuspiciousFilter('DISMISSED')}
+                  className={`h-7 text-xs ${suspiciousFilter === 'DISMISSED' ? 'bg-slate-900 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                >
+                  Dismissed
+                </Button>
+              </div>
+
+              <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
               <Button
                 type="button"
-                variant={suspiciousFilter === 'ALL' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setSuspiciousFilter('ALL')}
-                className={`h-7 text-xs ${suspiciousFilter === 'ALL' ? 'bg-slate-900 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                onClick={() => setShowRaiseModal(true)}
+                className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-2xs font-medium"
               >
-                All
-              </Button>
-              <Button
-                type="button"
-                variant={suspiciousFilter === 'DETECTED' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSuspiciousFilter('DETECTED')}
-                className={`h-7 text-xs ${suspiciousFilter === 'DETECTED' ? 'bg-slate-900 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
-              >
-                Detected
-              </Button>
-              <Button
-                type="button"
-                variant={suspiciousFilter === 'REPORTED_TO_LEAD' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSuspiciousFilter('REPORTED_TO_LEAD')}
-                className={`h-7 text-xs ${suspiciousFilter === 'REPORTED_TO_LEAD' ? 'bg-slate-900 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
-              >
-                Escalated to Lead
-              </Button>
-              <Button
-                type="button"
-                variant={suspiciousFilter === 'ACTION_TAKEN' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSuspiciousFilter('ACTION_TAKEN')}
-                className={`h-7 text-xs ${suspiciousFilter === 'ACTION_TAKEN' ? 'bg-slate-900 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
-              >
-                Action Taken
-              </Button>
-              <Button
-                type="button"
-                variant={suspiciousFilter === 'DISMISSED' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSuspiciousFilter('DISMISSED')}
-                className={`h-7 text-xs ${suspiciousFilter === 'DISMISSED' ? 'bg-slate-900 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
-              >
-                Dismissed
+                <Plus className="w-3.5 h-3.5 mr-1" />
+                <span>Raise Activity</span>
               </Button>
             </div>
           </div>
@@ -1093,6 +1159,153 @@ export default function AnomalyDetectionPage({ onNavigate }) {
                   className={resolveAction.includes('DISMISS') ? 'bg-slate-800 text-white' : 'bg-rose-600 hover:bg-rose-700 text-white'}
                 >
                   {resolving ? 'Executing...' : 'Commit Resolution'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL 3: RAISE SUSPICIOUS ACTIVITY (ANALYST WORKFLOW) */}
+      {/* ======================================================== */}
+      {showRaiseModal && (
+        <Dialog open={showRaiseModal} onOpenChange={setShowRaiseModal}>
+          <DialogContent className="max-w-lg bg-white border border-slate-200">
+            <DialogHeader>
+              <DialogTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600" />
+                <span>Raise Suspicious Activity Alert</span>
+              </DialogTitle>
+            </DialogHeader>
+
+            <form onSubmit={handleRaiseSubmit} className="space-y-3.5 py-2 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-slate-700">Activity Type *</Label>
+                  <Select
+                    value={newActivity.activity_type}
+                    onValueChange={(val) => setNewActivity({ ...newActivity, activity_type: val })}
+                  >
+                    <SelectTrigger className="w-full h-8 bg-white border-slate-200 text-xs font-medium text-slate-700 shadow-2xs">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NEW_UNRECOGNIZED_IP">New Unrecognized IP Address</SelectItem>
+                      <SelectItem value="UNAUTHORIZED_CLEARANCE_ACCESS">Clearance Violation</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-slate-700">Severity Level *</Label>
+                  <Select
+                    value={newActivity.severity}
+                    onValueChange={(val) => setNewActivity({ ...newActivity, severity: val })}
+                  >
+                    <SelectTrigger className="w-full h-8 bg-white border-slate-200 text-xs font-medium text-slate-700 shadow-2xs">
+                      <SelectValue placeholder="Select severity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Critical">Critical</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-slate-700">Source IP / Host *</Label>
+                  <Input
+                    required
+                    type="text"
+                    value={newActivity.source_ip}
+                    onChange={(e) => setNewActivity({ ...newActivity, source_ip: e.target.value })}
+                    placeholder="e.g. 198.51.100.77"
+                    className="h-8 text-xs font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-slate-700">Attempted Resource / Port *</Label>
+                  <Input
+                    required
+                    type="text"
+                    value={newActivity.attempted_resource}
+                    onChange={(e) => setNewActivity({ ...newActivity, attempted_resource: e.target.value })}
+                    placeholder="e.g. /api/v1/auth/tokens or Port 22"
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </div>
+
+              {newActivity.activity_type === 'UNAUTHORIZED_CLEARANCE_ACCESS' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold text-slate-700">Required Clearance</Label>
+                    <Input
+                      type="text"
+                      value={newActivity.required_clearance}
+                      onChange={(e) => setNewActivity({ ...newActivity, required_clearance: e.target.value })}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold text-slate-700">Actual User Clearance</Label>
+                    <Input
+                      type="text"
+                      value={newActivity.actual_clearance}
+                      onChange={(e) => setNewActivity({ ...newActivity, actual_clearance: e.target.value })}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-slate-700">Activity Description *</Label>
+                <textarea
+                  required
+                  rows={2}
+                  value={newActivity.description}
+                  onChange={(e) => setNewActivity({ ...newActivity, description: e.target.value })}
+                  placeholder="Detail the anomalous packet patterns, unauthorized access behavior, or payload observations..."
+                  className="w-full text-xs p-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 font-sans text-slate-800"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-slate-700">
+                  Analyst Escalation Notes (Optional — will auto-escalate to Team Lead):
+                </Label>
+                <textarea
+                  rows={2}
+                  value={newActivity.analyst_notes}
+                  onChange={(e) => setNewActivity({ ...newActivity, analyst_notes: e.target.value })}
+                  placeholder="Notes for Team Lead (e.g. Recommend immediate IP block)..."
+                  className="w-full text-xs p-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 font-sans text-slate-800"
+                />
+              </div>
+
+              <DialogFooter className="flex gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowRaiseModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={raising}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {raising ? 'Raising Alert...' : 'Raise to Team Lead'}
                 </Button>
               </DialogFooter>
             </form>

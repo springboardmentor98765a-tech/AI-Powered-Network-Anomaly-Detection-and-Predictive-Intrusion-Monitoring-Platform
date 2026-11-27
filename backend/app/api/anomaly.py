@@ -15,6 +15,7 @@ from app.models.anomaly import (
 )
 from app.schemas.anomaly import (
     SuspiciousActivityResponse,
+    CreateSuspiciousActivityRequest,
     ReportSuspiciousRequest,
     ResolveSuspiciousRequest,
     NetworkBehaviorMetricItem,
@@ -521,6 +522,86 @@ def get_suspicious_activities(
         )
         res.append(item)
     return res
+
+@router.post("/suspicious", response_model=SuspiciousActivityResponse, status_code=status.HTTP_201_CREATED)
+def create_suspicious_activity(
+    payload: CreateSuspiciousActivityRequest,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Analyst / Operator workflow: Raise a new suspicious activity report to Team Lead.
+    """
+    now = datetime.now(timezone.utc)
+    is_reported = bool(payload.analyst_notes and payload.analyst_notes.strip())
+
+    activity = SuspiciousActivity(
+        activity_type=payload.activity_type,
+        source_ip=payload.source_ip,
+        destination_ip=payload.destination_ip,
+        user_identity=payload.user_identity,
+        attempted_resource=payload.attempted_resource,
+        required_clearance=payload.required_clearance,
+        actual_clearance=payload.actual_clearance,
+        severity=payload.severity,
+        status="REPORTED_TO_LEAD" if is_reported else "DETECTED",
+        description=payload.description,
+        technical_details=f"Raised manually by analyst @{current_user.username} via Web Console",
+        reported_by_id=current_user.id if is_reported else None,
+        reported_at=now if is_reported else None,
+        analyst_notes=payload.analyst_notes if is_reported else None,
+        created_at=now,
+    )
+
+    db.add(activity)
+    db.commit()
+    db.refresh(activity)
+
+    # Log audit event
+    log_audit(
+        db=db,
+        action=AuditAction.SECURITY_ALERT,
+        target_type="SUSPICIOUS_ACTIVITY",
+        status=AuditStatus.SUCCESS,
+        actor_id=current_user.id,
+        actor_username=current_user.username,
+        target_id=str(activity.id),
+        details={
+            "action": "SUSPICIOUS_ACTIVITY_RAISED",
+            "activity_type": activity.activity_type,
+            "source_ip": activity.source_ip,
+            "user_identity": activity.user_identity,
+            "severity": activity.severity,
+            "analyst_notes": payload.analyst_notes,
+        },
+        ip_address=get_client_ip(request),
+    )
+
+    return SuspiciousActivityResponse(
+        id=activity.id,
+        activity_type=activity.activity_type,
+        source_ip=activity.source_ip,
+        destination_ip=activity.destination_ip,
+        user_identity=activity.user_identity,
+        attempted_resource=activity.attempted_resource,
+        required_clearance=activity.required_clearance,
+        actual_clearance=activity.actual_clearance,
+        severity=activity.severity,
+        status=activity.status,
+        description=activity.description,
+        technical_details=activity.technical_details,
+        reported_by_id=activity.reported_by_id,
+        reported_by_name=current_user.full_name or current_user.username if is_reported else None,
+        reported_at=activity.reported_at,
+        analyst_notes=activity.analyst_notes,
+        resolved_by_id=None,
+        resolved_by_name=None,
+        resolved_at=None,
+        resolution_action=None,
+        resolution_notes=None,
+        created_at=activity.created_at,
+    )
 
 @router.post("/suspicious/{activity_id}/report", response_model=SuspiciousActivityResponse)
 def report_suspicious_to_lead(

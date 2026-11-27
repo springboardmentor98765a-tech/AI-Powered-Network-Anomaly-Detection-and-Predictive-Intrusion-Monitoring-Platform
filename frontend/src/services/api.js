@@ -218,6 +218,12 @@ export const api = {
     return request(`/anomaly/suspicious${query ? `?${query}` : ''}`);
   },
 
+  createSuspiciousActivity: (data) =>
+    request('/anomaly/suspicious', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
   reportSuspiciousActivity: (activityId, analyst_notes) =>
     request(`/anomaly/suspicious/${activityId}/report`, {
       method: 'POST',
