@@ -124,3 +124,74 @@ class TrafficSummary(BaseModel):
     top_destinations: list[HostStat]
     directions: list[DirectionStat]
     activity_over_time: list[TimeSeriesPoint]
+
+class BehaviorRow(BaseModel):
+    id: int
+    source_ip: str
+    destination_ip: str
+    protocol: str
+    destination_port: int
+    packet_count: int
+    total_bytes: int
+    avg_packet_size: float
+    flow_rate_pps: float
+    syn_ratio: float
+    behavioral_profile: str
+    detection_trigger: str
+    is_new_ip: bool
+    unauthorized_clearance: bool
+    risk_score: int
+    risk_level: str
+    classification: str
+    rationale: str
+
+
+class RegularPatternItem(BaseModel):
+    pattern_key: str
+    ip_address: str
+    role: str  # "Regular Source IP", "Regular Destination IP", "Recurring Transfer"
+    protocol: str
+    port: int
+    avg_bytes: float
+    frequency: int
+    cadence: str
+
+
+class SuspiciousReportCreate(BaseModel):
+    anomaly_id: Optional[int] = None
+    source_ip: str
+    destination_ip: str
+    reason: str
+    clearance_violation: Optional[str] = "None"
+    severity: Optional[str] = "Medium"
+
+
+class SuspiciousReportAction(BaseModel):
+    decision: str  # "ACTION_TAKEN" or "DISMISSED"
+    note: Optional[str] = None
+
+
+class SuspiciousReportResponse(BaseModel):
+    id: int
+    anomaly_id: Optional[int]
+    reported_by_user_id: int
+    reported_by_name: Optional[str]
+    source_ip: str
+    destination_ip: str
+    reason: str
+    clearance_violation: str
+    severity: str
+    status: str
+    lead_resolution_note: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class AnomalyOverviewResponse(BaseModel):
+    behaviors: list[BehaviorRow]
+    suspicious_detections: list[BehaviorRow]
+    regular_patterns: list[RegularPatternItem]
+    classifications: list[BehaviorRow]
+    reports: list[SuspiciousReportResponse]

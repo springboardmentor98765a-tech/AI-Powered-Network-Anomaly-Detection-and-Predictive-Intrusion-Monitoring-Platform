@@ -81,3 +81,45 @@ class NetworkFlow(Base):
     __table_args__ = (
         Index("idx_flow_ip_proto", "source_ip", "destination_ip", "protocol"),
     )
+    
+class AnomalyRecord(Base):
+    __tablename__ = "anomaly_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    source_ip = Column(String(45), index=True)
+    destination_ip = Column(String(45), index=True)
+    protocol = Column(String(16), index=True)
+    destination_port = Column(Integer, default=0)
+    packet_count = Column(Integer, default=1)
+    total_bytes = Column(Integer, default=0)
+    avg_packet_size = Column(Float, default=0.0)
+    flow_rate_pps = Column(Float, default=0.0)
+    syn_ratio = Column(Float, default=0.0)
+    behavioral_profile = Column(String(120))
+    detection_trigger = Column(String(160))  # e.g., "New External IP", "Clearance Escalation", "Port Sweep"
+    is_new_ip = Column(Integer, default=0)
+    unauthorized_clearance = Column(Integer, default=0)
+    risk_score = Column(Integer, default=0)  # 0 - 100
+    risk_level = Column(String(20), default="Low")  # Critical, High, Medium, Low
+    classification = Column(String(30), default="MISTAKE")  # DANGEROUS, RISK_ASSESSED, MISTAKE
+    rationale = Column(Text)
+    detected_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+
+class SuspiciousReport(Base):
+    __tablename__ = "suspicious_reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    anomaly_id = Column(Integer, ForeignKey("anomaly_records.id"), nullable=True)
+    reported_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    reported_by_name = Column(String(120))
+    assigned_lead_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    source_ip = Column(String(45), index=True)
+    destination_ip = Column(String(45), index=True)
+    reason = Column(Text, nullable=False)
+    clearance_violation = Column(String(120), default="None")
+    severity = Column(String(20), default="Medium")
+    status = Column(String(24), default="PENDING_LEAD_REVIEW")  # PENDING_LEAD_REVIEW, ACTION_TAKEN, DISMISSED
+    lead_resolution_note = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

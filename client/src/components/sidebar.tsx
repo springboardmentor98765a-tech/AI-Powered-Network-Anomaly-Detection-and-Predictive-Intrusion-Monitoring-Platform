@@ -29,6 +29,7 @@ export default function Sidebar() {
     { link: "/monitoring", label: "Network Stream", icon: <Radio size={19} /> },
     { link: "/threats", label: "Threat Analytics", icon: <ShieldAlert size={19} /> },
     { link: "/teams", label: "Team Management", icon: <FolderKanban size={19} /> },
+    { link: "/anomaly-detection", label: "Anomaly Detection", icon: <FolderKanban size={19} /> },
     {
       link: "/users",
       label: "User Administration",
@@ -70,10 +71,9 @@ export default function Sidebar() {
             key={tab.link}
             to={tab.link}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
-                isActive
-                  ? "text-primary bg-background border border-primary/25 shadow-sm"
-                  : "text-text hover:bg-background/70 hover:text-text-h"
+              `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${isActive
+                ? "text-primary bg-background border border-primary/25 shadow-sm"
+                : "text-text hover:bg-background/70 hover:text-text-h"
               }`
             }
           >

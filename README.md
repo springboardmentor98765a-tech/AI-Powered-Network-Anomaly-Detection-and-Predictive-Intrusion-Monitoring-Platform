@@ -1,6 +1,6 @@
 # NetShield AI — AI-Powered Network Anomaly Detection & Predictive Intrusion Monitoring Platform
 
-[![Project Status: Active Development](https://img.shields.io/badge/Status-Module%202%20Completed-success.svg)]()
+[![Project Status: Active Development](https://img.shields.io/badge/Status-Module%203%20Completed-success.svg)]()
 [![Backend: FastAPI](https://img.shields.io/badge/Backend-FastAPI-005571?logo=fastapi)]()
 [![Frontend: React & Vite](https://img.shields.io/badge/Frontend-React%20%2F%20Vite%20%2F%20TS-61DAFB?logo=react&logoColor=black)]()
 [![Database: PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?logo=postgresql&logoColor=white)]()
@@ -10,7 +10,7 @@
 ## Current Project Status
 
 ```text
-Module 2 implementation completed; code pushed to GitHub on 20/11/2026.
+Module 3 implementation completed; code pushed to GitHub on 27/11/2026.
 ```
 
 ---
@@ -30,7 +30,8 @@ Module 2 implementation completed; code pushed to GitHub on 20/11/2026.
 | :----------------- | :------------------------- | :-----------: | :-------------: |
 | **Module 1**       | **User Management & RBAC** | **Completed** | **15 Nov 2026** |
 | **Module 2**       | **Network Monitoring**     | **Completed** | **20 NOv 2026** |
-| **Module 3**       | **-**                      |   **Next**    |      **-**      |
+| **Module 3**       | **Anomaly Detection**      | **Completed** | **27 NOv 2026** |
+| **Module 4**       | **-**                      |   **Next**    |      **-**      |
 
 ---
 
@@ -146,3 +147,7 @@ npm run dev
 |                               Network Monitoring                                |                               Threat Analytics                               |
 | :-----------------------------------------------------------------------------: | :--------------------------------------------------------------------------: |
 | <img src="docs/screenshots/network.png" alt="Network Monitoring" width="420" /> | <img src="docs/screenshots/threat.png" alt="Threat Analytics" width="420" /> |
+
+|                               Anomaly Detection                                |     |
+| :----------------------------------------------------------------------------: | :-: |
+| <img src="docs/screenshots/anomaly.png" alt="Anomaly Detection" width="420" /> |     |

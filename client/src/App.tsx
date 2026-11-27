@@ -9,6 +9,7 @@ import TeamManagement from "./pages/teamManagement";
 import AuditLogs from "./pages/auditlogs";
 import NetworkStream from "./pages/networkStream";
 import ThreatAnalytics from "./pages/threatAnalytics";
+import AnomalyDetection from "./pages/anomalyDetection";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -86,6 +87,15 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={["Administrator", "Team Lead", "Security Analyst"]}>
               <AuditLogs />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/anomaly-detection"
+          element={
+            <ProtectedRoute allowedRoles={["Administrator", "Team Lead", "Security Analyst"]}>
+              <AnomalyDetection />
             </ProtectedRoute>
           }
         />
