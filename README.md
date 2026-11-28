@@ -77,13 +77,23 @@ Completed the integration of live network monitoring into the existing NetShield
 
 **GitHub:** Changes successfully pushed to the `Deepthika-A` branch.
 
-**Latest Commit:** `eb133dd` – Add live network monitoring and packet capture.
+### Module 3 – Network Anomaly Detection
 
-**Current Status:** Week 2 – Milestone 1. Network monitoring integration completed. Further validation and dashboard testing are in progress.
+Implemented an integrated anomaly detection dashboard for network traffic monitoring and suspicious activity analysis.
 
-**Next Steps:** Complete dashboard validation and prepare the Milestone 1 demonstration.
+**Features implemented:**
+
+- **Network Behavior Analysis:** Monitors network flows, source and destination IP addresses, ports, protocols, packet counts, data volume, duration, and traffic activity.
+- **Suspicious Activity Detection:** Identifies newly observed IP addresses and unusual network activity by comparing current observations against established IP baselines.
+- **Suspicious Activity Reporting:** Enables security analysts to report suspicious observations for administrative review, with review status, reviewer information, and notes.
+- **Pattern Recognition:** Visualizes protocol distribution, top destination ports, and traffic-generating IP addresses, while highlighting suspicious communication patterns.
+- **Anomaly Classification:** Uses rule-based risk scoring to categorize detected activity into Low, Medium, High, and Critical severity levels.
+- **Admin Review Workflow:** Provides administrators with the ability to review, track, and manage suspicious activity reports submitted by analysts.
+
+The dashboard integrates network monitoring, traffic visualization, suspicious activity reporting, and risk classification within the existing NetShield AI platform.
 
 
-**Last Updated:** 20 November 2026
+
+**Last Updated:** 28 November 2026
 
 **Developer:** Deepthika
