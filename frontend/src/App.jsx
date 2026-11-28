@@ -31,6 +31,39 @@ const getRoleIdFromToken = (accessToken) => {
 };
 
 
+// Summarize captured packet observations into network flows for behavior analysis.
+// This is descriptive aggregation, not anomaly detection.
+const buildBehaviorFlows = (packets) => {
+  const flows = new Map();
+  for (const packet of packets || []) {
+    const key = [
+      packet.source_ip, packet.destination_ip, packet.protocol,
+      packet.source_port, packet.destination_port,
+    ].join("|");
+    const current = flows.get(key) || {
+      source_ip: packet.source_ip, destination_ip: packet.destination_ip,
+      protocol: packet.protocol, source_port: packet.source_port,
+      destination_port: packet.destination_port, packets: 0, bytes: 0,
+      first_seen: packet.timestamp, last_seen: packet.timestamp,
+    };
+    current.packets += 1;
+    current.bytes += Number(packet.bytes || 0);
+    current.first_seen = Math.min(current.first_seen, packet.timestamp);
+    current.last_seen = Math.max(current.last_seen, packet.timestamp);
+    flows.set(key, current);
+  }
+  return [...flows.values()]
+    .map((flow) => ({
+      ...flow,
+      duration_seconds: Math.max(0, flow.last_seen - flow.first_seen),
+      rate_per_minute: flow.last_seen > flow.first_seen
+        ? (flow.packets / ((flow.last_seen - flow.first_seen) / 60))
+        : flow.packets,
+      observation: flow.packets > 1 ? "Repeated flow" : "Single observation",
+    }))
+    .sort((a, b) => b.packets - a.packets || b.bytes - a.bytes);
+};
+
 function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,9 +97,14 @@ function App() {
   const [networkProtocol, setNetworkProtocol] = useState("");
   const [networkIpFilter, setNetworkIpFilter] = useState("");
   const [networkPortFilter, setNetworkPortFilter] = useState("");
+  const [suspiciousData, setSuspiciousData] = useState(null);
+  const [suspiciousError, setSuspiciousError] = useState("");
+  const [reportDescription, setReportDescription] = useState({});
+  const [reportBusy, setReportBusy] = useState("");
+  const [reviewNotes, setReviewNotes] = useState({});
 
   const [selectedTeam, setSelectedTeam] = useState("");
-  const [activeSection, setActiveSection] = useState("users");
+  const [activeSection, setActiveSection] = useState("overview");
 
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -125,7 +163,7 @@ function App() {
 
       localStorage.setItem("access_token", data.access_token);
       setToken(data.access_token);
-      setActiveSection("users");
+      setActiveSection(getRoleIdFromToken(data.access_token) === 1 ? "overview" : "teams");
       setPassword("");
     } catch {
       setMessage("Cannot connect to backend.");
@@ -326,14 +364,82 @@ function App() {
   }, [token, isAdmin, networkMinutes, networkProtocol, networkIpFilter, networkPortFilter]);
 
 
-  // Refresh network statistics while the Admin is viewing Network Monitoring.
-  useEffect(() => {
-    if (!token || !isAdmin || activeSection !== "network") return undefined;
+  const fetchSuspiciousData = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API}/anomaly/suspicious?minutes=${networkMinutes}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || "Unable to load suspicious activity.");
+      setSuspiciousData(data);
+      if (!isAdmin && data.analysis?.recent_packets) {
+        setNetworkPackets(data.analysis.recent_packets);
+        setNetworkStatus(data.capture_status || null);
+        setNetworkError(data.capture_status?.running ? "" : (data.capture_status?.error || "Capture is not running."));
+      }
+      setSuspiciousError("");
+    } catch (error) {
+      setSuspiciousError(error.message || "Suspicious activity service unavailable.");
+    }
+  }, [token, networkMinutes, isAdmin]);
 
-    fetchNetworkData();
-    const intervalId = window.setInterval(fetchNetworkData, 5000);
+  const saveIpBaseline = async () => {
+    try {
+      const response = await fetch(`${API}/anomaly/baseline`, {
+        method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ minutes: Number(networkMinutes) }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || "Could not save baseline.");
+      setMessage(`IP baseline saved: ${data.ip_count} addresses.`);
+      await fetchSuspiciousData();
+    } catch (error) { setMessage(error.message); }
+  };
+
+  const submitSuspiciousReport = async (ip) => {
+    const description = (reportDescription[ip] || "New IP observed in live packet capture.").trim();
+    setReportBusy(ip);
+    try {
+      const response = await fetch(`${API}/anomaly/reports`, {
+        method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ ip, description }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || "Report failed.");
+      setMessage(`Suspicious activity reported for ${ip}.`);
+      await fetchSuspiciousData();
+    } catch (error) { setMessage(error.message); }
+    finally { setReportBusy(""); }
+  };
+
+  const reviewSuspiciousReport = async (reportId, action) => {
+    const note = (reviewNotes[reportId] || (action === "Dismissed" ? "Reviewed; no action required." : "Reviewed; action initiated.")).trim();
+    setReportBusy(reportId);
+    try {
+      const response = await fetch(`${API}/anomaly/reports/${reportId}`, {
+        method: "PATCH", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ action, note }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || "Review action failed.");
+      setMessage(`Report ${action.toLowerCase()}.`);
+      await fetchSuspiciousData();
+    } catch (error) { setMessage(error.message); }
+    finally { setReportBusy(""); }
+  };
+
+  // Refresh live data for Admin on Network/Anomaly pages and Analyst on Anomaly page.
+  useEffect(() => {
+    if (!token || (!isAdmin && activeSection !== "anomaly") || !["network", "anomaly"].includes(activeSection)) return undefined;
+    if (isAdmin) fetchNetworkData();
+    if (activeSection === "anomaly") fetchSuspiciousData();
+    const intervalId = window.setInterval(() => {
+      if (isAdmin) fetchNetworkData();
+      if (activeSection === "anomaly") fetchSuspiciousData();
+    }, 5000);
     return () => window.clearInterval(intervalId);
-  }, [token, isAdmin, activeSection, fetchNetworkData]);
+  }, [token, isAdmin, activeSection, fetchNetworkData, fetchSuspiciousData]);
 
 
   // LOAD DATA FOR AUTHENTICATED USERS
@@ -845,181 +951,165 @@ function App() {
     );
   }
 
+
+  const renderAnomalyDashboard = () => {
+    return (
+          <section className="network-page behavior-page">
+            <div className="network-heading">
+              <div>
+                <h2>Network Behavior Analysis</h2>
+                <p>Technical summary of observed packet flows from the live capture buffer.</p>
+              </div>
+              <div className="network-controls">
+                <label htmlFor="behavior-window">Observation window</label>
+                <select id="behavior-window" value={networkMinutes}
+                  onChange={(e) => setNetworkMinutes(e.target.value)}>
+                  <option value="15">Last 15 minutes</option>
+                  <option value="30">Last 30 minutes</option>
+                  <option value="60">Last 1 hour</option>
+                  <option value="1440">Last 24 hours</option>
+                </select>
+                <button type="button" onClick={isAdmin ? fetchNetworkData : fetchSuspiciousData}>Refresh</button>
+              </div>
+            </div>
+
+            <div className="capture-status">
+              <span className={networkStatus?.running ? "live-dot" : "offline-dot"} />
+              <strong>{networkStatus?.running ? "LIVE CAPTURE RUNNING" : "CAPTURE NOT RUNNING"}</strong>
+              <span>{networkStatus?.interface ? `Interface: ${networkStatus.interface}` : "Waiting for capture interface"}</span>
+              <span>{networkPackets.length.toLocaleString()} packet records in current view</span>
+            </div>
+
+            {networkError && <div className="network-error"><strong>Capture status:</strong> {networkError}</div>}
+
+            <div className="network-stats-grid">
+              <div className="network-stat-card"><span>Observed Flows</span><strong>{buildBehaviorFlows(networkPackets).length.toLocaleString()}</strong><small>Grouped by IP, protocol and ports</small></div>
+              <div className="network-stat-card"><span>Packet Records</span><strong>{networkPackets.length.toLocaleString()}</strong><small>Records currently returned by capture API</small></div>
+              <div className="network-stat-card"><span>Unique Endpoints</span><strong>{new Set(networkPackets.flatMap((p) => [p.source_ip, p.destination_ip]).filter((ip) => ip && ip !== "-")).size}</strong><small>Source and destination addresses</small></div>
+              <div className="network-stat-card"><span>Protocols Observed</span><strong>{new Set(networkPackets.map((p) => p.protocol).filter(Boolean)).size}</strong><small>Protocols in current packet sample</small></div>
+            </div>
+
+            <div className="network-panel">
+              <div className="network-heading behavior-table-heading">
+                <div><h3>Observed Network Flow Table</h3><p className="network-muted">Flows are grouped from captured packet records. “Repeated flow” only describes repetition in this sample; it is not a threat verdict.</p></div>
+                <div className="network-filters">
+                  <input aria-label="Filter behavior table by IP" placeholder="Filter IP" value={networkIpFilter} onChange={(e) => setNetworkIpFilter(e.target.value)} />
+                  <input aria-label="Filter behavior table by port" placeholder="Port" value={networkPortFilter} onChange={(e) => setNetworkPortFilter(e.target.value)} />
+                  <select aria-label="Filter behavior table by protocol" value={networkProtocol} onChange={(e) => setNetworkProtocol(e.target.value)}>
+                    <option value="">All protocols</option>
+                    {[...new Set(networkPackets.map((p) => p.protocol).filter(Boolean))].sort().map((proto) => <option key={proto} value={proto}>{proto}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="table-container">
+                <table>
+                  <thead><tr><th>Source IP</th><th>Destination IP</th><th>Protocol</th><th>Source Port</th><th>Destination Port</th><th>Packets</th><th>Total Bytes</th><th>Duration (s)</th><th>Rate (pkt/min)</th><th>Last Seen</th><th>Observed Pattern</th></tr></thead>
+                  <tbody>
+                    {buildBehaviorFlows(networkPackets).map((flow, index) => (
+                      <tr key={`${flow.source_ip}-${flow.destination_ip}-${flow.protocol}-${flow.source_port}-${flow.destination_port}-${index}`}>
+                        <td>{flow.source_ip}</td><td>{flow.destination_ip}</td><td>{flow.protocol}</td><td>{flow.source_port}</td><td>{flow.destination_port}</td>
+                        <td>{flow.packets}</td><td>{flow.bytes.toLocaleString()}</td><td>{flow.duration_seconds.toFixed(2)}</td><td>{flow.rate_per_minute.toFixed(2)}</td>
+                        <td>{new Date(flow.last_seen * 1000).toLocaleTimeString()}</td><td>{flow.observation}</td>
+                      </tr>
+                    ))}
+                    {!networkPackets.length && <tr><td colSpan="11">No captured packet records in this window. Check capture status or change filters.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <section className="network-panel suspicious-panel">
+              <div className="network-heading suspicious-heading">
+                <div><h3>Suspicious Activity Detection — New IP Observations</h3><p className="network-muted">Newly observed endpoints are signals for review, not proof of malicious activity.</p></div>
+                {isAdmin && <button type="button" onClick={saveIpBaseline}>Save Current IP Baseline</button>}
+              </div>
+              {suspiciousError && <div className="network-error">{suspiciousError}</div>}
+              <div className="network-stats-grid suspicious-kpis">
+                <div className="network-stat-card"><span>Baseline IPs</span><strong>{suspiciousData?.baseline_count ?? 0}</strong><small>Persisted baseline</small></div>
+                <div className="network-stat-card"><span>Observed IPs</span><strong>{suspiciousData?.observed_count ?? 0}</strong><small>Current window</small></div>
+                <div className="network-stat-card"><span>New IPs</span><strong>{suspiciousData?.new_ip_count ?? 0}</strong><small>Not in baseline</small></div>
+                <div className="network-stat-card"><span>Reports</span><strong>{suspiciousData?.reports?.length ?? 0}</strong><small>Submitted for review</small></div>
+              </div>
+              <div className="table-container"><table><thead><tr><th>IP Address</th><th>Packets</th><th>Bytes</th><th>First Seen</th><th>Last Seen</th><th>Severity</th><th>Status</th><th>Report</th></tr></thead>
+                <tbody>{(suspiciousData?.new_ips || []).map((item) => <tr key={item.ip}><td>{item.ip}</td><td>{item.packets}</td><td>{item.bytes.toLocaleString()}</td><td>{new Date(item.first_seen * 1000).toLocaleString()}</td><td>{new Date(item.last_seen * 1000).toLocaleString()}</td><td><span className={`risk-badge risk-${item.severity.toLowerCase()}`}>{item.severity}</span></td><td>{item.status}</td><td>{(roleId === 1 || roleId === 2) && item.status === "New" ? <div className="report-cell"><input aria-label={`Report reason for ${item.ip}`} placeholder="Reason (optional)" value={reportDescription[item.ip] || ""} onChange={(e) => setReportDescription((prev) => ({...prev, [item.ip]: e.target.value}))}/><button disabled={reportBusy === item.ip} onClick={() => submitSuspiciousReport(item.ip)}>Report</button></div> : "—"}</td></tr>)}
+                {!suspiciousData?.new_ips?.length && <tr><td colSpan="8">No new IPs detected. Save a baseline to enable comparison.</td></tr>}</tbody>
+              </table></div>
+              <h3 className="review-title">Analyst Reports / Team Lead Review</h3>
+              <p className="network-muted">Team Lead review is represented by Admin role in this version because the current RBAC model has no separate Team Lead role.</p>
+              <div className="table-container"><table><thead><tr><th>IP</th><th>Reported By</th><th>Description</th><th>Created</th><th>Status</th><th>Review</th></tr></thead><tbody>
+                {(suspiciousData?.reports || []).slice().reverse().map((report) => <tr key={report.id}><td>{report.ip}</td><td>{report.reporter_name}</td><td>{report.description}</td><td>{new Date(report.created_at).toLocaleString()}</td><td>{report.status}{report.reviewed_by ? ` by ${report.reviewed_by}` : ""}</td><td>{isAdmin && report.status === "Reported" ? <div className="review-actions"><textarea className="review-note-input" rows="2" placeholder="Admin review note / action taken" value={reviewNotes[report.id] || ""} onChange={(e) => setReviewNotes((prev) => ({...prev, [report.id]: e.target.value}))}/><button disabled={reportBusy === report.id} onClick={() => reviewSuspiciousReport(report.id, "Action Taken")}>Take Action</button><button className="secondary-button" disabled={reportBusy === report.id} onClick={() => reviewSuspiciousReport(report.id, "Dismissed")}>Dismiss</button></div> : report.review_note ? `Admin note: ${report.review_note}` : "Pending review by Admin"}</td></tr>)}
+                {!suspiciousData?.reports?.length && <tr><td colSpan="6">No reports submitted yet.</td></tr>}
+              </tbody></table></div>
+            </section>
+            <div className="module2-analytics-grid">
+              <section className="network-panel analytics-panel">
+                <div className="analytics-title"><div><h3>Pattern Recognition</h3><p className="network-muted">Frequent protocols, destination ports and active source endpoints in the selected capture window.</p></div><span className="chart-tag">LIVE SAMPLE</span></div>
+                <div className="pattern-columns">
+                  <div className="pattern-chart"><h4>Protocol distribution</h4>{(suspiciousData?.analysis?.protocols || []).map((item, i) => { const max = Math.max(1, ...(suspiciousData?.analysis?.protocols || []).map(x => x.count)); return <div className="chart-row" key={item.name}><span>{item.name}</span><div className="chart-track"><div className={`chart-fill color-${i % 5}`} style={{width:`${Math.max(3,item.count/max*100)}%`}}/></div><b>{item.count}</b></div>; })}{!suspiciousData?.analysis?.protocols?.length && <p className="network-muted">Waiting for packets.</p>}</div>
+                  <div className="pattern-chart"><h4>Top destination ports</h4>{(suspiciousData?.analysis?.destination_ports || []).map((item, i) => { const max = Math.max(1, ...(suspiciousData?.analysis?.destination_ports || []).map(x => x.count)); return <div className="chart-row" key={item.port}><span>{item.port}</span><div className="chart-track"><div className={`chart-fill color-${(i+2) % 5}`} style={{width:`${Math.max(3,item.count/max*100)}%`}}/></div><b>{item.count}</b></div>; })}{!suspiciousData?.analysis?.destination_ports?.length && <p className="network-muted">Waiting for packets.</p>}</div>
+                </div>
+                <div className="top-source-strip"><h4>Top talkers</h4>{(suspiciousData?.analysis?.top_sources || []).slice(0,5).map((item,i)=><div className="talker-chip" key={item.ip}><span className={`talker-dot color-${i%5}`}/><span>{item.ip}</span><strong>{item.count} pkts</strong></div>)}</div>
+              </section>
+              <section className="network-panel classification-panel">
+                <div className="analytics-title"><div><h3>Anomaly Classification</h3><p className="network-muted">Transparent heuristic scoring; findings are signals for human review, not confirmed attacks.</p></div><span className="chart-tag purple">RULE ENGINE</span></div>
+                <div className="classification-kpis">{[ ["Low","risk-low"], ["Medium","risk-medium"], ["High","risk-high"], ["Critical","risk-critical"] ].map(([level, cls])=><div className="classification-card" key={level}><span className={`risk-badge ${cls}`}>{level}</span><strong>{suspiciousData?.analysis?.severity_counts?.[level] ?? 0}</strong></div>)}</div>
+                <div className="classification-meter"><div className="meter-segment low" style={{flex:suspiciousData?.analysis?.severity_counts?.Low || 0}}/><div className="meter-segment medium" style={{flex:suspiciousData?.analysis?.severity_counts?.Medium || 0}}/><div className="meter-segment high" style={{flex:suspiciousData?.analysis?.severity_counts?.High || 0}}/><div className="meter-segment critical" style={{flex:suspiciousData?.analysis?.severity_counts?.Critical || 0}}/></div>
+                <div className="classification-note">Analyzed <strong>{suspiciousData?.analysis?.packets_analyzed ?? 0}</strong> packets · Score bands: Low 0–19, Medium 20–39, High 40–69, Critical 70–100.</div>
+              </section>
+            </div>
+            <section className="network-panel findings-panel">
+              <div className="analytics-title"><div><h3>Suspicious Pattern Findings</h3><p className="network-muted">Evidence-based rules: port breadth, repeated flow volume and high packet-volume sources.</p></div><span className="chart-tag amber">REVIEW REQUIRED</span></div>
+              <div className="table-container"><table><thead><tr><th>Source IP</th><th>Pattern</th><th>Score</th><th>Severity</th><th>Evidence</th><th>Classification</th></tr></thead><tbody>
+                {(suspiciousData?.analysis?.findings || []).map(f=><tr key={f.source_ip}><td>{f.source_ip}</td><td>{f.categories.join(" · ")}</td><td><div className="score-pill"><span style={{width:`${f.score}%`}}/>{f.score}/100</div></td><td><span className={`risk-badge risk-${f.severity.toLowerCase()}`}>{f.severity}</span></td><td>{f.evidence.join("; ")}</td><td>{f.classification}</td></tr>)}
+                {!suspiciousData?.analysis?.findings?.length && <tr><td colSpan="6">No rule-based findings in the current capture window. This is not a guarantee that traffic is benign.</td></tr>}
+              </tbody></table></div>
+            </section>
+            <p className="network-footnote">Task 2–4: new IP observations and reports; pattern recognition summarizes communication behavior; anomaly classification uses transparent heuristic rules. These rules are not a trained ML model and should be tuned against your network baseline.</p>
+          </section>
+    );
+  };
+
   // ROLE-SPECIFIC DASHBOARDS FOR ANALYST AND VIEWER
   if (!isAdmin) {
     const hasValidRole = roleId === 2 || roleId === 3;
-
-    const refreshReadOnlyData = async () => {
-      setRefreshing(true);
-
-      await fetchTeams();
-
-      if (selectedTeam) {
-        await fetchMembers(selectedTeam);
-      }
-
-      setRefreshing(false);
-      setMessage("Team information refreshed.");
-    };
-
+    const refreshReadOnlyData = async () => { setRefreshing(true); await fetchTeams(); if (selectedTeam) await fetchMembers(selectedTeam); setRefreshing(false); setMessage("Team information refreshed."); };
+    const analystCanAccessAnomaly = roleId === 2;
     return (
-      <div className="dashboard">
+      <div className="dashboard sidebar-dashboard">
         <header className="dashboard-header">
-          <h1>🛡️ NetShield AI</h1>
-
-          <div className="header-actions">
-            {hasValidRole && (
-              <button
-                onClick={refreshReadOnlyData}
-                disabled={refreshing}
-              >
-                {refreshing ? "Refreshing..." : "↻ Refresh"}
-              </button>
-            )}
-
-            <button onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
+          <div className="brand-lockup"><span className="brand-shield">◆</span><div><h1>NetShield AI</h1><small>Network Security Operations</small></div></div>
+          <div className="header-actions"><span className="user-role-pill">{roleName}</span>{hasValidRole && <button className="header-secondary" onClick={refreshReadOnlyData} disabled={refreshing}>{refreshing ? "Refreshing..." : "Refresh"}</button>}<button onClick={handleLogout}>Logout</button></div>
         </header>
-
-        <main className="dashboard-content">
-          {!hasValidRole ? (
-            <section className="users-section">
-              <h2>Session Update Required</h2>
-
-              <p>
-                Your saved login session does not contain role information.
-                Please log out and sign in again.
-              </p>
-
-              <button onClick={handleLogout}>
-                Log Out and Sign In Again
-              </button>
-            </section>
-          ) : (
-            <>
-              <h2>{roleName} Dashboard</h2>
-
-              <p>
-                Network Security Management Platform
-              </p>
-
-              {message && (
-                <p className="dashboard-message">{message}</p>
-              )}
-
-              <div className="dashboard-stats">
-                <div className="stat-card">
-                  <h3>Signed-in Role</h3>
-                  <p>{roleName}</p>
-                </div>
-
-                <div className="stat-card">
-                  <h3>Teams Available</h3>
-                  <p>{teams.length}</p>
-                </div>
-
-                <div className="stat-card">
-                  <h3>Selected Team Members</h3>
-                  <p>{members.length}</p>
-                </div>
-              </div>
-
-              <section className="users-section">
-                <h2>
-                  {roleId === 2
-                    ? "My Assigned Teams"
-                    : "Team Directory"}
-                </h2>
-
-                <p>
-                  {roleId === 2
-                    ? "You can view only teams to which your account has been assigned."
-                    : "You have read-only access to team and membership information."}
-                </p>
-
-                <label>Select Team</label>
-
-                <select
-                  className="team-selector"
-                  value={selectedTeam}
-                  onChange={(e) => setSelectedTeam(e.target.value)}
-                >
-                  <option value="">Choose a team</option>
-
-                  {teams.map((team) => (
-                    <option
-                      key={team.id}
-                      value={team.id}
-                    >
-                      {team.name}
-                    </option>
-                  ))}
-                </select>
-
-                {selectedTeam && (
-                  <div className="table-container">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>User ID</th>
-                          <th>Full Name</th>
-                          <th>Email Address</th>
-                          <th>Joined At</th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        {members.map((member) => (
-                          <tr key={member.id}>
-                            <td>{member.user_id}</td>
-                            <td>{member.user_full_name || `User #${member.user_id}`}</td>
-                            <td>{member.user_email || "-"}</td>
-                            <td>
-                              {member.joined_at
-                                ? new Date(
-                                    member.joined_at
-                                  ).toLocaleString()
-                                : "-"}
-                            </td>
-                          </tr>
-                        ))}
-
-                        {members.length === 0 && (
-                          <tr>
-                            <td colSpan="4">
-                              No members found in this team.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {teams.length === 0 && (
-                  <p>
-                    No teams are currently available to your account.
-                  </p>
-                )}
-              </section>
-            </>
-          )}
-        </main>
+        <div className="dashboard-shell">
+          <aside className="app-sidebar">
+            <div className="sidebar-label">WORKSPACE</div>
+            <button className={`sidebar-link ${activeSection === "teams" ? "sidebar-active" : ""}`} onClick={() => setActiveSection("teams")}><span className="nav-icon">▦</span><span>Team Directory</span></button>
+            {analystCanAccessAnomaly && <button className={`sidebar-link ${activeSection === "anomaly" ? "sidebar-active" : ""}`} onClick={() => setActiveSection("anomaly")}><span className="nav-icon">◈</span><span>Anomaly Detection</span><span className="sidebar-badge">Live</span></button>}
+            <div className="sidebar-footer"><div className="sidebar-user-dot">{(roleName || "U").slice(0,1).toUpperCase()}</div><div><strong>{roleName}</strong><small>{roleName} access</small></div></div>
+          </aside>
+          <main className="dashboard-content sidebar-content">
+            {!hasValidRole ? <section className="users-section"><h2>Session Update Required</h2><p>Your saved login session does not contain role information. Please log out and sign in again.</p><button onClick={handleLogout}>Log Out and Sign In Again</button></section> : (
+              <>
+                <div className="page-title-row"><div><span className="eyebrow">SECURITY WORKSPACE</span><h2>{activeSection === "anomaly" ? "Anomaly Detection" : "Team Directory"}</h2><p>{activeSection === "anomaly" ? "Shared monitoring, suspicious observations, analyst reports and review status." : "Access your team membership and directory information."}</p></div><span className="role-tag role-analyst">{roleName}</span></div>
+                {message && <p className="dashboard-message">{message}</p>}
+                {activeSection === "teams" && <section className="users-section"><h2>{roleId === 2 ? "My Assigned Teams" : "Team Directory"}</h2><p>{roleId === 2 ? "You can view only teams to which your account has been assigned." : "You have read-only access to team and membership information."}</p><label>Select Team</label><select className="team-selector" value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)}><option value="">Choose a team</option>{teams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}</select>{selectedTeam && <div className="table-container"><table><thead><tr><th>User ID</th><th>Full Name</th><th>Email Address</th><th>Joined At</th></tr></thead><tbody>{members.map((member) => <tr key={member.id}><td>{member.user_id}</td><td>{member.user_full_name || `User #${member.user_id}`}</td><td>{member.user_email || "-"}</td><td>{member.joined_at ? new Date(member.joined_at).toLocaleString() : "-"}</td></tr>)}{members.length === 0 && <tr><td colSpan="4">No members found in this team.</td></tr>}</tbody></table></div>}{teams.length === 0 && <p>No teams are currently available to your account.</p>}</section>}
+                {activeSection === "anomaly" && analystCanAccessAnomaly && renderAnomalyDashboard()}
+              </>
+            )}
+          </main>
+        </div>
       </div>
     );
   }
 
-
   // ADMIN DASHBOARD
   return (
-    <div className="dashboard">
+    <div className="dashboard sidebar-dashboard">
       <header className="dashboard-header">
-        <h1>🛡️ NetShield AI</h1>
+        <div className="brand-lockup"><span className="brand-shield">◆</span><div><h1>NetShield AI</h1><small>Network Security Operations</small></div></div>
 
         <div className="header-actions">
-          <button
+          <span className="user-role-pill">Administrator</span>
+          <button className="header-secondary"
             onClick={handleRefresh}
             disabled={refreshing}
           >
@@ -1032,19 +1122,30 @@ function App() {
         </div>
       </header>
 
-      <main className="dashboard-content">
-        <h2>Admin Dashboard</h2>
-
-        <p>
-          Network Security Management Platform
-        </p>
+      <div className="dashboard-shell">
+        <aside className="app-sidebar">
+          <div className="sidebar-label">ADMIN WORKSPACE</div>
+          <button className={`sidebar-link ${activeSection === "overview" ? "sidebar-active" : ""}`} onClick={() => setActiveSection("overview")}><span className="nav-icon">⌂</span><span>Overview</span></button>
+          <div className="sidebar-label">MANAGEMENT</div>
+          <button className={`sidebar-link ${activeSection === "users" ? "sidebar-active" : ""}`} onClick={() => setActiveSection("users")}><span className="nav-icon">♙</span><span>User Management</span></button>
+          <button className={`sidebar-link ${activeSection === "teams" ? "sidebar-active" : ""}`} onClick={() => setActiveSection("teams")}><span className="nav-icon">▦</span><span>Team Management</span></button>
+          <button className={`sidebar-link ${activeSection === "audit" ? "sidebar-active" : ""}`} onClick={() => setActiveSection("audit")}><span className="nav-icon">≡</span><span>Audit Logs</span></button>
+          <div className="sidebar-label">MONITORING</div>
+          <button className={`sidebar-link ${activeSection === "network" ? "sidebar-active" : ""}`} onClick={() => setActiveSection("network")}><span className="nav-icon">⌁</span><span>Network Monitoring</span></button>
+          <button className={`sidebar-link ${activeSection === "anomaly" ? "sidebar-active" : ""}`} onClick={() => setActiveSection("anomaly")}><span className="nav-icon">◈</span><span>Anomaly Detection</span><span className="sidebar-badge">Live</span></button>
+          <div className="sidebar-footer"><div className="sidebar-user-dot">A</div><div><strong>Administrator</strong><small>Admin · Review authority</small></div></div>
+        </aside>
+        <main className="dashboard-content sidebar-content">
+          <div className="page-title-row"><div><span className="eyebrow">SECURITY WORKSPACE</span><h2>{({overview:"Overview",users:"User Management",teams:"Team Management",audit:"Audit Logs",network:"Network Monitoring",anomaly:"Anomaly Detection"})[activeSection] || "Dashboard"}</h2><p>Network Security Management Platform</p></div><span className="role-tag role-admin">ADMIN</span></div>
 
         {message && (
           <p className="dashboard-message">{message}</p>
         )}
 
 
-        {/* DASHBOARD STATISTICS */}
+        {activeSection === "overview" && (<>
+          <section className="overview-welcome"><div><h3>Security operations at a glance</h3><p>Manage users, review alerts and monitor live network activity from one workspace.</p></div><div className="welcome-mark">◈</div></section>
+          {/* DASHBOARD STATISTICS */}
         <div className="dashboard-stats">
           <div className="stat-card">
             <h3>Total Users</h3>
@@ -1068,45 +1169,12 @@ function App() {
         </div>
 
 
-        {/* DASHBOARD NAVIGATION */}
-        <div className="dashboard-nav">
-          <button
-            className={
-              activeSection === "users" ? "nav-active" : ""
-            }
-            onClick={() => setActiveSection("users")}
-          >
-            User Management
-          </button>
-
-          <button
-            className={
-              activeSection === "teams" ? "nav-active" : ""
-            }
-            onClick={() => setActiveSection("teams")}
-          >
-            Team Management
-          </button>
-
-          <button
-            className={
-              activeSection === "audit" ? "nav-active" : ""
-            }
-            onClick={() => setActiveSection("audit")}
-          >
-            Audit Logs
-          </button>
-
-          <button
-            className={activeSection === "network" ? "nav-active" : ""}
-            onClick={() => setActiveSection("network")}
-          >
-            Network Monitoring
-          </button>
-        </div>
+        </>)}
 
 
         {/* USER MANAGEMENT */}
+        {activeSection === "overview" && <div className="overview-shortcuts"><button onClick={() => setActiveSection("network")}>Open Live Monitoring →</button><button onClick={() => setActiveSection("anomaly")}>Review Anomalies →</button><button onClick={() => setActiveSection("users")}>Manage Users →</button></div>}
+
         {activeSection === "users" && (
           <>
             <section className="users-section">
@@ -1746,7 +1814,10 @@ function App() {
             </p>
           </section>
         )}
-      </main>
+
+        {activeSection === "anomaly" && renderAnomalyDashboard()}
+        </main>
+      </div>
     </div>
   );
 }
